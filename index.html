@@ -513,7 +513,7 @@
       txContainer.innerHTML = data.transactions.map(tx => `
         <div class="tx">
           <div>
-            <div class="tx-name">${tx.description || tx.category || '—'}</div>
+            <div class="tx-name">${tx.category || tx.description || '—'}</div>
             <div class="tx-date">${formatShortDate(tx.date)}</div>
           </div>
           <div class="tx-amount">+${formatMoney(tx.amount)}</div>
