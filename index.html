@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Мой объект</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Geologica:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F5F2EE;
+    --surface: #FFFFFF;
+    --ink: #1C1A17;
+    --ink-soft: #6B6560;
+    --accent: #C4602A;
+    --accent-light: #F0E0D6;
+    --border: #E2DDD8;
+    --success: #4A7C59;
+    --muted: #B8B2AB;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Geologica', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    font-size: 15px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* LOADER */
+  .loader {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    gap: 16px;
+    color: var(--muted);
+    font-size: 14px;
+  }
+  .loader-ring {
+    width: 40px; height: 40px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ERROR */
+  .error {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    gap: 12px;
+    padding: 32px;
+    text-align: center;
+  }
+  .error-icon { font-size: 40px; }
+  .error-title { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 600; }
+  .error-text { font-size: 14px; color: var(--ink-soft); }
+
+  /* MAIN */
+  .main { display: none; }
+
+  /* HEADER */
+  .header {
+    background: var(--ink);
+    color: #F5F2EE;
+    padding: 32px 24px 28px;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 200px; height: 200px;
+    border-radius: 50%;
+    background: rgba(196,96,42,0.15);
+  }
+  .header-label {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .header-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 28px;
+    font-weight: 600;
+    line-height: 1.2;
+    margin-bottom: 20px;
+  }
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    background: rgba(196,96,42,0.2);
+    border: 1px solid rgba(196,96,42,0.4);
+    color: #F0A070;
+    padding: 6px 14px;
+    border-radius: 100px;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+  }
+  .status-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: #F0A070;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  /* PROGRESS */
+  .progress-section {
+    background: var(--surface);
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+  }
+  .progress-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 12px;
+  }
+  .progress-label {
+    font-size: 12px;
+    color: var(--ink-soft);
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .progress-pct {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--accent);
+  }
+  .progress-track {
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), #D4824A);
+    border-radius: 3px;
+    transition: width 1.2s cubic-bezier(0.4,0,0.2,1);
+    width: 0%;
+  }
+  .progress-dates {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  /* SECTIONS */
+  .section {
+    padding: 24px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    margin-top: 8px;
+    animation: fadeUp 0.5s ease both;
+  }
+  .section-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-title .icon { font-size: 16px; opacity: 0.6; }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+
+  /* FINANCES */
+  .finance-hero {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .finance-card {
+    background: var(--bg);
+    border-radius: 12px;
+    padding: 16px;
+  }
+  .finance-card.accent { background: var(--accent); color: white; }
+  .finance-card-label {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 6px;
+  }
+  .finance-card.accent .finance-card-label { color: rgba(255,255,255,0.7); }
+  .finance-card-amount {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 24px;
+    font-weight: 600;
+    line-height: 1;
+  }
+  .transactions { display: flex; flex-direction: column; }
+  .tx {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .tx:last-child { border-bottom: none; }
+  .tx-name { font-size: 14px; color: var(--ink); }
+  .tx-date { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .tx-amount {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--success);
+  }
+
+  /* DATES */
+  .dates-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .date-card {
+    background: var(--bg);
+    border-radius: 12px;
+    padding: 16px;
+  }
+  .date-card-label {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 6px;
+  }
+  .date-card-value {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 20px;
+    font-weight: 600;
+  }
+  .date-card-sub {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  /* MANAGER */
+  .manager-card {
+    margin: 8px;
+    background: var(--ink);
+    color: #F5F2EE;
+    border-radius: 16px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .manager-avatar {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    background: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 20px;
+    font-weight: 600;
+    color: white;
+    flex-shrink: 0;
+  }
+  .manager-label {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 500;
+  }
+  .manager-name { font-size: 16px; font-weight: 500; margin-top: 2px; }
+  .manager-btn {
+    margin-left: auto;
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: 'Geologica', sans-serif;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: opacity 0.2s;
+    text-decoration: none;
+    display: inline-block;
+  }
+  .manager-btn:hover { opacity: 0.85; }
+  .last-update {
+    text-align: center;
+    font-size: 12px;
+    color: var(--muted);
+    padding: 16px 16px 32px;
+  }
+
+  /* NO DATA */
+  .empty {
+    text-align: center;
+    padding: 24px;
+    color: var(--muted);
+    font-size: 14px;
+  }
+</style>
+</head>
+<body>
+
+<!-- LOADER -->
+<div class="loader" id="loader">
+  <div class="loader-ring"></div>
+  <span>Загружаем данные объекта...</span>
+</div>
+
+<!-- ERROR -->
+<div class="error" id="error">
+  <div class="error-icon">🔍</div>
+  <div class="error-title">Объект не найден</div>
+  <div class="error-text">Проверьте ссылку или обратитесь к вашему прорабу</div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="main" id="main">
+
+  <div class="header">
+    <div class="header-label">Ваш объект</div>
+    <div class="header-title" id="header-title">—</div>
+    <div class="status-pill">
+      <div class="status-dot"></div>
+      <span id="status-text">В работе</span>
+    </div>
+  </div>
+
+  <div class="progress-section">
+    <div class="progress-meta">
+      <span class="progress-label">Прогресс по срокам</span>
+      <span class="progress-pct" id="progress-pct">—</span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="progress-fill"></div>
+    </div>
+    <div class="progress-dates">
+      <span id="date-start-label">—</span>
+      <span id="date-end-label">—</span>
+    </div>
+  </div>
+
+  <!-- DATES -->
+  <div class="section">
+    <div class="section-title"><span class="icon">📅</span> Сроки</div>
+    <div class="dates-grid">
+      <div class="date-card">
+        <div class="date-card-label">Начало работ</div>
+        <div class="date-card-value" id="date-start">—</div>
+        <div class="date-card-sub" id="days-passed">—</div>
+      </div>
+      <div class="date-card">
+        <div class="date-card-label">Завершение</div>
+        <div class="date-card-value" id="date-end">—</div>
+        <div class="date-card-sub" id="days-left">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FINANCES -->
+  <div class="section">
+    <div class="section-title"><span class="icon">💰</span> Оплата</div>
+    <div class="finance-hero">
+      <div class="finance-card accent">
+        <div class="finance-card-label">Внесено</div>
+        <div class="finance-card-amount" id="total-income">—</div>
+      </div>
+      <div class="finance-card">
+        <div class="finance-card-label">Баланс</div>
+        <div class="finance-card-amount" id="balance">—</div>
+      </div>
+    </div>
+    <div class="transactions" id="transactions">
+      <div class="empty">Загрузка...</div>
+    </div>
+  </div>
+
+  <!-- MANAGER -->
+  <div class="manager-card">
+    <div class="manager-avatar" id="manager-avatar">М</div>
+    <div>
+      <div class="manager-label">Ваш прораб</div>
+      <div class="manager-name" id="manager-name">Максим</div>
+    </div>
+    <a class="manager-btn" id="manager-btn" href="#">Написать</a>
+  </div>
+
+  <div class="last-update" id="last-update">Данные обновляются в реальном времени</div>
+
+</div>
+
+<script>
+  // ── CONFIG ──
+  // Замени на свой production URL когда активируешь воркфлоу
+  const API_BASE = 'https://assistcloudai.xyz/webhook-test/portal';
+
+  // ── UTILS ──
+  function getToken() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('token');
+  }
+
+  function formatDate(str) {
+    if (!str) return '—';
+    // Формат "17.01.2026" или "2026-01-17"
+    const parts = str.includes('.') ? str.split('.').reverse() : str.split('-');
+    const d = new Date(parts.join('-'));
+    if (isNaN(d)) return str;
+    return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+  }
+
+  function formatMoney(num) {
+    if (num === undefined || num === null) return '—';
+    const abs = Math.abs(Number(num));
+    return abs.toLocaleString('ru-RU') + ' ₽';
+  }
+
+  function formatShortDate(str) {
+    if (!str) return '—';
+    const clean = str.replace(' по мск', '').trim();
+    // "Mar 13, 2026 - 12:01"
+    try {
+      const d = new Date(clean.replace(' - ', ' '));
+      if (!isNaN(d)) return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
+    } catch(e) {}
+    return clean.split(' - ')[0];
+  }
+
+  function calcProgress(startStr, endStr) {
+    if (!startStr || !endStr) return 0;
+    const fmt = s => {
+      const p = s.includes('.') ? s.split('.').reverse() : s.split('-');
+      return new Date(p.join('-'));
+    };
+    const start = fmt(startStr);
+    const end = fmt(endStr);
+    const now = new Date();
+    if (isNaN(start) || isNaN(end)) return 0;
+    const total = end - start;
+    const passed = now - start;
+    return Math.min(100, Math.max(0, Math.round((passed / total) * 100)));
+  }
+
+  // ── RENDER ──
+  function render(data) {
+    // Header
+    document.title = data.name || 'Мой объект';
+    document.getElementById('header-title').textContent = data.name || '—';
+
+    // Status
+    const daysLeft = data.days_left || '';
+    const daysNum = parseInt(daysLeft);
+    if (!isNaN(daysNum) && daysNum < 0) {
+      document.getElementById('status-text').textContent = 'Срок истёк · ' + Math.abs(daysNum) + ' дн.';
+    } else if (!isNaN(daysNum) && daysNum <= 7) {
+      document.getElementById('status-text').textContent = 'Сдача через ' + daysNum + ' дн.';
+    } else {
+      document.getElementById('status-text').textContent = 'В работе';
+    }
+
+    // Progress
+    const pct = calcProgress(data.date_start, data.date_end);
+    document.getElementById('progress-pct').textContent = pct + '%';
+    setTimeout(() => {
+      document.getElementById('progress-fill').style.width = pct + '%';
+    }, 100);
+    document.getElementById('date-start-label').textContent = 'Начало: ' + formatDate(data.date_start);
+    document.getElementById('date-end-label').textContent = 'Сдача: ' + formatDate(data.date_end);
+
+    // Dates
+    document.getElementById('date-start').textContent = formatDate(data.date_start);
+    document.getElementById('date-end').textContent = formatDate(data.date_end);
+    document.getElementById('days-passed').textContent = data.days_passed ? 'Прошло: ' + data.days_passed : '';
+    document.getElementById('days-left').textContent = data.days_left ? 'Осталось: ' + data.days_left : '';
+
+    // Finances
+    document.getElementById('total-income').textContent = formatMoney(data.total_income);
+    const bal = Number(data.balance);
+    const balEl = document.getElementById('balance');
+    balEl.textContent = formatMoney(data.balance);
+    balEl.style.color = bal >= 0 ? 'var(--success)' : 'var(--accent)';
+
+    // Transactions
+    const txContainer = document.getElementById('transactions');
+    if (!data.transactions || data.transactions.length === 0) {
+      txContainer.innerHTML = '<div class="empty">Платежей пока нет</div>';
+    } else {
+      txContainer.innerHTML = data.transactions.map(tx => `
+        <div class="tx">
+          <div>
+            <div class="tx-name">${tx.description || tx.category || '—'}</div>
+            <div class="tx-date">${formatShortDate(tx.date)}</div>
+          </div>
+          <div class="tx-amount">+${formatMoney(tx.amount)}</div>
+        </div>
+      `).join('');
+    }
+
+    // Last update
+    document.getElementById('last-update').textContent =
+      'Данные обновляются в реальном времени';
+  }
+
+  // ── INIT ──
+  async function init() {
+    const token = getToken();
+
+    if (!token) {
+      document.getElementById('loader').style.display = 'none';
+      document.getElementById('error').style.display = 'flex';
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_BASE}?token=${token}`);
+      if (!res.ok) throw new Error('not found');
+      const data = await res.json();
+
+      if (!data.name) throw new Error('empty');
+
+      document.getElementById('loader').style.display = 'none';
+      document.getElementById('main').style.display = 'block';
+      render(data);
+
+    } catch(e) {
+      document.getElementById('loader').style.display = 'none';
+      document.getElementById('error').style.display = 'flex';
+    }
+  }
+
+  init();
+</script>
+</body>
+</html>
