@@ -402,12 +402,11 @@
 
   <!-- MANAGER -->
   <div class="manager-card">
-    <div class="manager-avatar" id="manager-avatar">М</div>
     <div>
-      <div class="manager-label">Ваш прораб</div>
-      <div class="manager-name" id="manager-name">Максим</div>
+      <div class="manager-label">Нажмите "Перейти" для быстрого перехода в совместный чат</div>
+      <div class="manager-name" id="manager-name">Группа в Telegram</div>
     </div>
-    <a class="manager-btn" id="manager-btn" href="#">Написать</a>
+    <a class="manager-btn" id="manager-btn" id="manager-link" href="#"">Перейти</a>
   </div>
 
   <div class="last-update" id="last-update">Данные обновляются в реальном времени</div>
@@ -521,9 +520,13 @@
       `).join('');
     }
 
-    // Last update
-    document.getElementById('last-update').textContent =
-      'Данные обновляются в реальном времени';
+    // Contact link
+const linkEl = document.getElementById('manager-link');
+if (linkEl && data.contact_link) linkEl.href = data.contact_link;
+
+// Last update
+document.getElementById('last-update').textContent =
+  'Данные обновляются в реальном времени';
   }
 
   // ── INIT ──
