@@ -643,6 +643,7 @@ document.getElementById('last-update').textContent =
       if (!data.name) throw new Error('empty');
 
       document.getElementById('loader').style.display = 'none';
+      document.getElementById('error').style.display = 'none';
       document.getElementById('main').style.display = 'block';
       render(data);
 
