@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Мой объект</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -610,25 +611,32 @@ document.getElementById('last-update').textContent =
 
   // ── INIT ──
   async function init() {
+    const tg = window.Telegram?.WebApp;
+    const tgId = tg?.initDataUnsafe?.user?.id;
     const token = getToken();
 
-    if (!token) {
+    let apiUrl;
+    if (tgId) {
+      apiUrl = `https://assistcloudai.xyz/webhook/portal-by-tgid?tg_id=${tgId}`;
+    } else if (token) {
+      apiUrl = `${API_BASE}?token=${token}`;
+    } else {
       document.getElementById('loader').style.display = 'none';
       document.getElementById('error').style.display = 'flex';
       return;
     }
 
     try {
-      const res = await fetch(`${API_BASE}?token=${token}`);
+      const res = await fetch(apiUrl);
       if (!res.ok) throw new Error('not found');
       const data = await res.json();
 
-      if (!data.name) throw new Error('empty');
+      if (!data.name || data.error) throw new Error('empty');
 
       document.getElementById('loader').style.display = 'none';
       document.getElementById('error').style.display = 'none';
       document.getElementById('main').style.display = 'block';
-      render(data, token);
+      render(data, token || data.portal_token);
 
     } catch(e) {
       document.getElementById('loader').style.display = 'none';
