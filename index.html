@@ -382,30 +382,25 @@
     </div>
   </div>
 
-  <!-- FINANCES -->
-  <div class="section">
-    <div class="section-title"><span class="icon">💰</span> Оплата</div>
-    <div class="finance-hero">
-      <div class="finance-card accent">
-        <div class="finance-card-label">Внесено</div>
-        <div class="finance-card-amount" id="total-income">—</div>
-      </div>
-      <div class="finance-card">
-        <div class="finance-card-label">Баланс</div>
-        <div class="finance-card-amount" id="balance">—</div>
-      </div>
+  <!-- FINANCES & PAYMENT -->
+<div class="section">
+  <div class="section-title"><span class="icon">💰</span> Оплата</div>
+  <div class="finance-hero">
+    <div class="finance-card accent">
+      <div class="finance-card-label">Внесено</div>
+      <div class="finance-card-amount" id="total-income">—</div>
     </div>
-    <div class="transactions" id="transactions">
-      <div class="empty">Загрузка...</div>
+    <div class="finance-card">
+      <div class="finance-card-label">Баланс</div>
+      <div class="finance-card-amount" id="balance">—</div>
     </div>
   </div>
-  <!-- PAYMENT -->
-<div class="section" id="payment-section">
-  <div class="section-title"><span class="icon">💳</span> Внести средства</div>
-  <div id="payment-form">
-    <p style="font-size:14px;color:var(--ink-soft);margin-bottom:16px;">Оплата через СБП. После перевода нажмите кнопку ниже.</p>
+  <div class="transactions" id="transactions">
+    <div class="empty">Загрузка...</div>
+  </div>
+  <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">
     <a href="https://finance.ozon.ru/apps/sbp/ozonbankpay/019d0855-4631-76d3-a55d-e67421eaf506" target="_blank" style="display:block;background:var(--accent);color:white;text-align:center;padding:14px;border-radius:12px;text-decoration:none;font-weight:600;font-size:15px;margin-bottom:12px;">
-      Перейти к оплате СБП
+      Внести средства через СБП
     </a>
     <div style="margin-bottom:8px;">
       <label style="font-size:12px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:0.06em;font-weight:500;">Сумма перевода, ₽</label>
@@ -414,11 +409,6 @@
     <button id="payment-confirm-btn" onclick="confirmPayment()" style="width:100%;background:var(--ink);color:white;border:none;padding:14px;border-radius:12px;font-size:15px;font-weight:600;font-family:inherit;cursor:pointer;margin-top:4px;">
       Я оплатил
     </button>
-  </div>
-  <div id="payment-success" style="display:none;text-align:center;padding:16px;">
-    <div style="font-size:32px;margin-bottom:8px;">✅</div>
-    <div style="font-weight:600;font-size:16px;">Сообщение отправлено</div>
-    <div style="font-size:14px;color:var(--ink-soft);margin-top:4px;">Платёж будет подтверждён в ближайшее время</div>
   </div>
 </div>
   
