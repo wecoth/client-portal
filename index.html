@@ -399,8 +399,26 @@
       <div class="empty">Загрузка...</div>
     </div>
   </div>
+  
+<!-- PHOTOS -->
+<div class="section" id="photos-section" style="display:none">
+  <div class="section-title"><span class="icon">📸</span> Фото с объекта</div>
+  <div id="photos-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;"></div>
+</div>
 
-  <!-- PAYMENT -->
+  <!-- DOCUMENTS -->
+<div class="section" id="docs-section" style="display:none">
+  <div class="section-title"><span class="icon">📄</span> Документы</div>
+  <div id="docs-list" style="display:flex;flex-direction:column;gap:8px;"></div>
+</div>
+
+<!-- RECEIPTS -->
+<div class="section" id="receipts-section" style="display:none">
+  <div class="section-title"><span class="icon">🧾</span> Чеки</div>
+  <div id="receipts-list" style="display:flex;flex-direction:column;gap:8px;"></div>
+</div>
+
+<!-- PAYMENT -->
 <div class="section" id="payment-section">
   <div class="section-title"><span class="icon">💳</span> Внести средства</div>
   <div id="payment-form">
@@ -421,24 +439,6 @@
     <div style="font-weight:600;font-size:16px;">Сообщение отправлено</div>
     <div style="font-size:14px;color:var(--ink-soft);margin-top:4px;">Платёж будет подтверждён в ближайшее время</div>
   </div>
-</div>
-  
-<!-- PHOTOS -->
-<div class="section" id="photos-section" style="display:none">
-  <div class="section-title"><span class="icon">📸</span> Фото с объекта</div>
-  <div id="photos-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;"></div>
-</div>
-
-  <!-- DOCUMENTS -->
-<div class="section" id="docs-section" style="display:none">
-  <div class="section-title"><span class="icon">📄</span> Документы</div>
-  <div id="docs-list" style="display:flex;flex-direction:column;gap:8px;"></div>
-</div>
-
-<!-- RECEIPTS -->
-<div class="section" id="receipts-section" style="display:none">
-  <div class="section-title"><span class="icon">🧾</span> Чеки</div>
-  <div id="receipts-list" style="display:flex;flex-direction:column;gap:8px;"></div>
 </div>
   
   <!-- MANAGER -->
@@ -654,33 +654,34 @@ document.getElementById('last-update').textContent =
   }
 
   init();
+
   async function confirmPayment() {
-  const amount = document.getElementById('payment-amount').value;
-  if (!amount || isNaN(amount) || Number(amount) <= 0) {
-    alert('Введите сумму перевода');
-    return;
+    const amount = document.getElementById('payment-amount').value;
+    if (!amount || isNaN(amount) || Number(amount) <= 0) {
+      alert('Введите сумму перевода');
+      return;
+    }
+    const btn = document.getElementById('payment-confirm-btn');
+    btn.disabled = true;
+    btn.textContent = 'Отправляем...';
+    try {
+      await fetch('https://assistcloudai.xyz/webhook/portal-payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          token: window._portalToken,
+          amount: Number(amount),
+          name: window._portalName
+        })
+      });
+      document.getElementById('payment-form').style.display = 'none';
+      document.getElementById('payment-success').style.display = 'block';
+    } catch(e) {
+      btn.disabled = false;
+      btn.textContent = 'Я оплатил';
+      alert('Ошибка. Попробуйте ещё раз.');
+    }
   }
-  const btn = document.getElementById('payment-confirm-btn');
-  btn.disabled = true;
-  btn.textContent = 'Отправляем...';
-  try {
-    await fetch('https://assistcloudai.xyz/webhook/portal-payment', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        token: window._portalToken,
-        amount: Number(amount),
-        name: window._portalName
-      })
-    });
-    document.getElementById('payment-form').style.display = 'none';
-    document.getElementById('payment-success').style.display = 'block';
-  } catch(e) {
-    btn.disabled = false;
-    btn.textContent = 'Я оплатил';
-    alert('Ошибка. Попробуйте ещё раз.');
-  }
-}
 </script>
 </body>
 </html>
