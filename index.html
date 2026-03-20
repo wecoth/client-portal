@@ -565,7 +565,7 @@ if (data.folder_docs) {
       document.getElementById('docs-list').innerHTML = files.map(f => `
         <a href="${f.view_url}" target="_blank" style="display:flex;align-items:center;gap:14px;padding:14px;background:var(--bg);border-radius:10px;text-decoration:none;color:inherit;">
           <div style="width:38px;height:38px;background:var(--surface);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">📑</div>
-          <div style="font-size:14px;font-weight:500;">${f.name}</div>
+          <div style="font-size:14px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px;">${f.name}</div>
           <div style="margin-left:auto;color:var(--muted);">↓</div>
         </a>
       `).join('');
