@@ -399,6 +399,29 @@
       <div class="empty">Загрузка...</div>
     </div>
   </div>
+
+  <!-- PAYMENT -->
+<div class="section" id="payment-section">
+  <div class="section-title"><span class="icon">💳</span> Внести средства</div>
+  <div id="payment-form">
+    <p style="font-size:14px;color:var(--ink-soft);margin-bottom:16px;">Оплата через СБП. После перевода нажмите кнопку ниже.</p>
+    <a href="https://finance.ozon.ru/apps/sbp/ozonbankpay/019d0855-4631-76d3-a55d-e67421eaf506" target="_blank" style="display:block;background:var(--accent);color:white;text-align:center;padding:14px;border-radius:12px;text-decoration:none;font-weight:600;font-size:15px;margin-bottom:12px;">
+      Перейти к оплате СБП
+    </a>
+    <div style="margin-bottom:8px;">
+      <label style="font-size:12px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:0.06em;font-weight:500;">Сумма перевода, ₽</label>
+      <input id="payment-amount" type="number" placeholder="Введите сумму" style="width:100%;margin-top:6px;padding:12px;border:1px solid var(--border);border-radius:10px;font-size:15px;font-family:inherit;background:var(--bg);color:var(--ink);outline:none;"/>
+    </div>
+    <button id="payment-confirm-btn" onclick="confirmPayment()" style="width:100%;background:var(--ink);color:white;border:none;padding:14px;border-radius:12px;font-size:15px;font-weight:600;font-family:inherit;cursor:pointer;margin-top:4px;">
+      Я оплатил
+    </button>
+  </div>
+  <div id="payment-success" style="display:none;text-align:center;padding:16px;">
+    <div style="font-size:32px;margin-bottom:8px;">✅</div>
+    <div style="font-weight:600;font-size:16px;">Сообщение отправлено</div>
+    <div style="font-size:14px;color:var(--ink-soft);margin-top:4px;">Платёж будет подтверждён в ближайшее время</div>
+  </div>
+</div>
   
 <!-- PHOTOS -->
 <div class="section" id="photos-section" style="display:none">
@@ -589,6 +612,10 @@ if (data.folder_receipts) {
       `).join('');
     }).catch(() => {});
 }
+
+// Payment
+window._portalToken = token;
+window._portalName = data.name;
     
     // Contact link
 const linkEl = document.getElementById('manager-link');
@@ -627,6 +654,33 @@ document.getElementById('last-update').textContent =
   }
 
   init();
+  async function confirmPayment() {
+  const amount = document.getElementById('payment-amount').value;
+  if (!amount || isNaN(amount) || Number(amount) <= 0) {
+    alert('Введите сумму перевода');
+    return;
+  }
+  const btn = document.getElementById('payment-confirm-btn');
+  btn.disabled = true;
+  btn.textContent = 'Отправляем...';
+  try {
+    await fetch('https://assistcloudai.xyz/webhook/portal-payment', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        token: window._portalToken,
+        amount: Number(amount),
+        name: window._portalName
+      })
+    });
+    document.getElementById('payment-form').style.display = 'none';
+    document.getElementById('payment-success').style.display = 'block';
+  } catch(e) {
+    btn.disabled = false;
+    btn.textContent = 'Я оплатил';
+    alert('Ошибка. Попробуйте ещё раз.');
+  }
+}
 </script>
 </body>
 </html>
