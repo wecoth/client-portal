@@ -506,7 +506,7 @@
   }
 
   // ── RENDER ──
-  function render(data) {
+  function render(data, token) {
     // Header
     document.title = data.name || 'Мой объект';
     document.getElementById('header-title').textContent = data.name || '—';
@@ -645,7 +645,7 @@ document.getElementById('last-update').textContent =
       document.getElementById('loader').style.display = 'none';
       document.getElementById('error').style.display = 'none';
       document.getElementById('main').style.display = 'block';
-      render(data);
+      render(data, token);
 
     } catch(e) {
       document.getElementById('loader').style.display = 'none';
