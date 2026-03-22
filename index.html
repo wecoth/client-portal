@@ -383,6 +383,7 @@
   <div class="header">
     <div class="header-label">Ваш объект</div>
     <div class="header-title" id="header-title">—</div>
+    <div id="header-stage" style="margin-top:-8px;margin-bottom:14px;color:#c9c3bc;font-size:14px;font-weight:500;">Текущий этап: —</div>
     <div class="status-pill">
       <div class="status-dot"></div>
       <span id="status-text">В работе</span>
@@ -604,6 +605,7 @@
   function render(data, token) {
     document.title = data.name || 'Мой объект';
     document.getElementById('header-title').textContent = data.name || '—';
+    document.getElementById('header-stage').textContent = 'Этап: ' + (data.current_stage || '—');
 
     const daysLeft = data.days_left || '';
     const daysNum = parseInt(daysLeft, 10);
