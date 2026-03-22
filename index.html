@@ -31,6 +31,12 @@
     line-height: 1.6;
     min-height: 100vh;
   }
+  
+  body.modal-open {
+  overflow: hidden;
+  touch-action: none;
+}
+
 
   /* LOADER */
   .loader {
@@ -717,6 +723,7 @@
     }
 
     modal.classList.add('open');
+    document.body.classList.add('modal-open');
   }
 
   function closeFileModal() {
@@ -724,6 +731,7 @@
     const img = document.getElementById('file-modal-img');
     const frame = document.getElementById('file-modal-frame');
     modal.classList.remove('open');
+    document.body.classList.remove('modal-open');
     if (window.__resetModalZoom) window.__resetModalZoom();
     img.src = '';
     frame.src = '';
