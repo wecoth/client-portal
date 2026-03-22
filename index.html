@@ -327,6 +327,38 @@
     color: var(--muted);
     font-size: 14px;
   }
+    .photo-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.86);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    padding: 12px;
+  }
+  .photo-modal.open { display: flex; }
+  .photo-modal img {
+    max-width: 96vw;
+    max-height: 86vh;
+    border-radius: 10px;
+    object-fit: contain;
+    background: #111;
+  }
+  .photo-modal-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255,255,255,.15);
+    color: #fff;
+    font-size: 22px;
+    cursor: pointer;
+  }
+
 </style>
 </head>
 <body>
@@ -441,6 +473,11 @@
 
 </div>
 
+<div id="photo-modal" class="photo-modal">
+  <button id="photo-modal-close" class="photo-modal-close">×</button>
+  <img id="photo-modal-img" alt="Фото объекта" />
+</div>
+  
 <script>
   // ── CONFIG ──
   // Замени на свой production URL когда активируешь воркфлоу
@@ -494,6 +531,34 @@
   }
 
   // ── RENDER ──
+  function toLargeImage(url) {
+  if (!url) return '';
+  return url
+    .replace(/=s\d+/g, '=w1600')
+    .replace(/=w\d+/g, '=w1600')
+    .replace(/sz=w\d+/g, 'sz=w1600');
+}
+
+function openPhotoModal(src) {
+  const modal = document.getElementById('photo-modal');
+  const img = document.getElementById('photo-modal-img');
+  img.src = src;
+  modal.classList.add('open');
+}
+
+function closePhotoModal() {
+  const modal = document.getElementById('photo-modal');
+  const img = document.getElementById('photo-modal-img');
+  modal.classList.remove('open');
+  img.src = '';
+}
+
+document.addEventListener('click', (e) => {
+  if (e.target.id === 'photo-modal-close' || e.target.id === 'photo-modal') {
+    closePhotoModal();
+  }
+});
+
   function render(data, token) {
     // Header
     document.title = data.name || 'Мой объект';
@@ -555,12 +620,21 @@ if (data.folder_photos) {
     .then(d => {
       const photos = (d.files || []).filter(f => f.type === 'image');
       if (photos.length === 0) return;
+
       document.getElementById('photos-section').style.display = 'block';
-      document.getElementById('photos-grid').innerHTML = photos.map(f => `
-        <a href="${f.view_url}" target="_blank" style="border-radius:10px;overflow:hidden;aspect-ratio:4/3;background:#e2ddd8;display:block;">
-          <img src="${f.thumb_url}" style="width:100%;height:100%;object-fit:cover;" loading="lazy"/>
-        </a>
-      `).join('');
+      document.getElementById('photos-grid').innerHTML = photos.map(f => {
+        const thumb = f.thumb_url || '';
+        const large = toLargeImage(f.full_url || f.thumb_url || f.view_url || '');
+        return `
+          <button type="button" data-photo="${large}" style="border:0;padding:0;border-radius:10px;overflow:hidden;aspect-ratio:4/3;background:#e2ddd8;display:block;cursor:pointer;">
+            <img src="${thumb}" style="width:100%;height:100%;object-fit:cover;" loading="lazy"/>
+          </button>
+        `;
+      }).join('');
+
+      document.querySelectorAll('#photos-grid [data-photo]').forEach(el => {
+        el.addEventListener('click', () => openPhotoModal(el.dataset.photo));
+      });
     }).catch(() => {});
 }
 
