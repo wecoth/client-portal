@@ -441,110 +441,27 @@
     </a>
   </div>
 </div>
-  
-// Photos
-if (data.folder_photos) {
-  fetch(`https://assistcloudai.xyz/webhook/portal-files?folder_id=${data.folder_photos}`)
-    .then(r => r.json())
-    .then(d => {
-      const photos = (d.files || []).filter(f => f.type === 'image');
-      if (photos.length === 0) return;
 
-      document.getElementById('photos-section').style.display = 'block';
-      document.getElementById('photos-grid').innerHTML = photos.map(f => {
-        const thumb = f.thumb_url || '';
-        const large = toLargeImage(f.full_url || f.thumb_url || f.view_url || '');
-        const safeName = (f.name || 'Фото').replace(/"/g, '&quot;');
+  <!-- PHOTOS -->
+  <div class="section" id="photos-section" style="display:none">
+    <div class="section-title"><span class="icon">📸</span> Фото с объекта</div>
+    <div id="photos-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;"></div>
+  </div>
 
-        return `
-          <button type="button"
-                  data-type="image"
-                  data-url="${large}"
-                  data-title="${safeName}"
-                  style="border:0;padding:0;border-radius:10px;overflow:hidden;aspect-ratio:4/3;background:#e2ddd8;display:block;cursor:pointer;">
-            <img src="${thumb}" style="width:100%;height:100%;object-fit:cover;" loading="lazy"/>
-          </button>
-        `;
-      }).join('');
+  <!-- DOCUMENTS -->
+  <div class="section" id="docs-section" style="display:none">
+    <div class="section-title"><span class="icon">📄</span> Документы</div>
+    <div id="docs-list" style="display:flex;flex-direction:column;gap:8px;"></div>
+  </div>
 
-      document.querySelectorAll('#photos-grid [data-url]').forEach(el => {
-        el.addEventListener('click', () => {
-          openFileModal({
-            type: 'image',
-            title: el.dataset.title || 'Фото',
-            url: el.dataset.url
-          });
-        });
-      });
-    })
-    .catch(() => {});
-}
+  <!-- RECEIPTS -->
+  <div class="section" id="receipts-section" style="display:none">
+    <div class="section-title"><span class="icon">🧾</span> Чеки</div>
+    <div id="receipts-list" style="display:flex;flex-direction:column;gap:8px;"></div>
+  </div>
 
-  // Documents
-if (data.folder_docs) {
-  fetch(`https://assistcloudai.xyz/webhook/portal-files?folder_id=${data.folder_docs}`)
-    .then(r => r.json())
-    .then(d => {
-      const files = d.files || [];
-      if (files.length === 0) return;
-
-      document.getElementById('docs-section').style.display = 'block';
-      document.getElementById('docs-list').innerHTML = files.map(f => {
-        const safeName = (f.name || 'Документ').replace(/"/g, '&quot;');
-        return `
-          <button type="button" data-type="${f.type || 'file'}" data-url="${f.view_url || ''}" data-title="${safeName}" style="display:flex;align-items:center;gap:14px;padding:14px;background:var(--bg);border-radius:10px;border:0;width:100%;text-align:left;cursor:pointer;">
-            <div style="width:38px;height:38px;background:var(--surface);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">📑</div>
-            <div style="font-size:14px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px;">${f.name}</div>
-            <div style="margin-left:auto;color:var(--muted);">Открыть</div>
-          </button>
-        `;
-      }).join('');
-
-      document.querySelectorAll('#docs-list [data-url]').forEach(el => {
-        el.addEventListener('click', () => {
-          openFileModal({
-            type: el.dataset.type === 'image' ? 'image' : 'doc',
-            title: el.dataset.title || 'Документ',
-            url: el.dataset.url
-          });
-        });
-      });
-    }).catch(() => {});
-}
-
-// Receipts
-if (data.folder_receipts) {
-  fetch(`https://assistcloudai.xyz/webhook/portal-files?folder_id=${data.folder_receipts}`)
-    .then(r => r.json())
-    .then(d => {
-      const files = d.files || [];
-      if (files.length === 0) return;
-
-      document.getElementById('receipts-section').style.display = 'block';
-      document.getElementById('receipts-list').innerHTML = files.map(f => {
-        const safeName = (f.name || 'Чек').replace(/"/g, '&quot;');
-        return `
-          <button type="button" data-type="${f.type || 'file'}" data-url="${f.view_url || ''}" data-title="${safeName}" style="display:flex;align-items:center;gap:14px;padding:14px;background:var(--bg);border-radius:10px;border:0;width:100%;text-align:left;cursor:pointer;">
-            <div style="width:38px;height:38px;background:var(--surface);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🧾</div>
-            <div style="font-size:14px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px;">${f.name}</div>
-            <div style="margin-left:auto;color:var(--muted);">Открыть</div>
-          </button>
-        `;
-      }).join('');
-
-      document.querySelectorAll('#receipts-list [data-url]').forEach(el => {
-        el.addEventListener('click', () => {
-          openFileModal({
-            type: el.dataset.type === 'image' ? 'image' : 'doc',
-            title: el.dataset.title || 'Чек',
-            url: el.dataset.url
-          });
-        });
-      });
-    }).catch(() => {});
-}
-  
   <!-- MANAGER -->
+
   <div class="manager-card">
     <div>
       <div class="manager-label">Нажмите "Перейти" для быстрого перехода в совместный чат</div>
@@ -569,11 +486,8 @@ if (data.folder_receipts) {
 
   
 <script>
-  // ── CONFIG ──
-  // Замени на свой production URL когда активируешь воркфлоу
   const API_BASE = 'https://assistcloudai.xyz/webhook/portal';
 
-  // ── UTILS ──
   function getToken() {
     const params = new URLSearchParams(window.location.search);
     return params.get('token');
@@ -581,7 +495,6 @@ if (data.folder_receipts) {
 
   function formatDate(str) {
     if (!str) return '—';
-    // Формат "17.01.2026" или "2026-01-17"
     const parts = str.includes('.') ? str.split('.').reverse() : str.split('-');
     const d = new Date(parts.join('-'));
     if (isNaN(d)) return str;
@@ -596,19 +509,18 @@ if (data.folder_receipts) {
 
   function formatShortDate(str) {
     if (!str) return '—';
-    const clean = str.replace(' по мск', '').trim();
-    // "Mar 13, 2026 - 12:01"
+    const clean = String(str).replace(' по мск', '').trim();
     try {
       const d = new Date(clean.replace(' - ', ' '));
       if (!isNaN(d)) return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
-    } catch(e) {}
+    } catch (e) {}
     return clean.split(' - ')[0];
   }
 
   function calcProgress(startStr, endStr) {
     if (!startStr || !endStr) return 0;
-    const fmt = s => {
-      const p = s.includes('.') ? s.split('.').reverse() : s.split('-');
+    const fmt = (s) => {
+      const p = String(s).includes('.') ? String(s).split('.').reverse() : String(s).split('-');
       return new Date(p.join('-'));
     };
     const start = fmt(startStr);
@@ -620,71 +532,80 @@ if (data.folder_receipts) {
     return Math.min(100, Math.max(0, Math.round((passed / total) * 100)));
   }
 
-  // ── RENDER ──
   function toLargeImage(url) {
-  if (!url) return '';
-  return url
-    .replace(/=s\d+/g, '=w1600')
-    .replace(/=w\d+/g, '=w1600')
-    .replace(/sz=w\d+/g, 'sz=w1600');
-}
-
-function toPreviewUrl(url) {
-  if (!url) return '';
-  // drive .../view -> .../preview для iframe
-  return url.replace('/view', '/preview');
-}
-
-function openFileModal({ type, title, url }) {
-  const modal = document.getElementById('file-modal');
-  const img = document.getElementById('file-modal-img');
-  const frame = document.getElementById('file-modal-frame');
-  const titleEl = document.getElementById('file-modal-title');
-
-  titleEl.textContent = title || 'Просмотр';
-  img.style.display = 'none';
-  frame.style.display = 'none';
-  img.src = '';
-  frame.src = '';
-
-  if (type === 'image') {
-    img.src = url;
-    img.style.display = 'block';
-  } else {
-    frame.src = toPreviewUrl(url);
-    frame.style.display = 'block';
+    if (!url) return '';
+    return String(url)
+      .replace(/=s\d+/g, '=w1600')
+      .replace(/=w\d+/g, '=w1600')
+      .replace(/sz=w\d+/g, 'sz=w1600');
   }
 
-  modal.classList.add('open');
-}
-
-function closeFileModal() {
-  const modal = document.getElementById('file-modal');
-  const img = document.getElementById('file-modal-img');
-  const frame = document.getElementById('file-modal-frame');
-  modal.classList.remove('open');
-  img.src = '';
-  frame.src = '';
-}
-
-document.addEventListener('click', (e) => {
-  if (e.target.id === 'file-modal-close' || e.target.id === 'file-modal') {
-    closeFileModal();
+  function toPreviewUrl(url) {
+    if (!url) return '';
+    return String(url).replace('/view', '/preview');
   }
-});
 
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape') closeFileModal();
-});
+  function escapeHtml(text) {
+    return String(text || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function openFileModal(opts) {
+    const modal = document.getElementById('file-modal');
+    const titleEl = document.getElementById('file-modal-title');
+    const img = document.getElementById('file-modal-img');
+    const frame = document.getElementById('file-modal-frame');
+
+    const type = (opts && opts.type) || 'doc';
+    const title = (opts && opts.title) || 'Просмотр';
+    const url = (opts && opts.url) || '';
+
+    titleEl.textContent = title;
+    img.style.display = 'none';
+    frame.style.display = 'none';
+    img.src = '';
+    frame.src = '';
+
+    if (type === 'image') {
+      img.src = toLargeImage(url);
+      img.style.display = 'block';
+    } else {
+      frame.src = toPreviewUrl(url);
+      frame.style.display = 'block';
+    }
+
+    modal.classList.add('open');
+  }
+
+  function closeFileModal() {
+    const modal = document.getElementById('file-modal');
+    const img = document.getElementById('file-modal-img');
+    const frame = document.getElementById('file-modal-frame');
+    modal.classList.remove('open');
+    img.src = '';
+    frame.src = '';
+  }
+
+  document.addEventListener('click', (e) => {
+    if (e.target.id === 'file-modal-close' || e.target.id === 'file-modal') {
+      closeFileModal();
+    }
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeFileModal();
+  });
 
   function render(data, token) {
-    // Header
     document.title = data.name || 'Мой объект';
     document.getElementById('header-title').textContent = data.name || '—';
 
-    // Status
     const daysLeft = data.days_left || '';
-    const daysNum = parseInt(daysLeft);
+    const daysNum = parseInt(daysLeft, 10);
     if (!isNaN(daysNum) && daysNum < 0) {
       document.getElementById('status-text').textContent = 'Срок истёк · ' + Math.abs(daysNum) + ' дн.';
     } else if (!isNaN(daysNum) && daysNum <= 7) {
@@ -693,7 +614,6 @@ document.addEventListener('keydown', (e) => {
       document.getElementById('status-text').textContent = 'В работе';
     }
 
-    // Progress
     const pct = calcProgress(data.date_start, data.date_end);
     document.getElementById('progress-pct').textContent = pct + '%';
     setTimeout(() => {
@@ -702,110 +622,124 @@ document.addEventListener('keydown', (e) => {
     document.getElementById('date-start-label').textContent = 'Начало: ' + formatDate(data.date_start);
     document.getElementById('date-end-label').textContent = 'Сдача: ' + formatDate(data.date_end);
 
-    // Dates
     document.getElementById('date-start').textContent = formatDate(data.date_start);
     document.getElementById('date-end').textContent = formatDate(data.date_end);
     document.getElementById('days-passed').textContent = data.days_passed ? 'Прошло: ' + data.days_passed : '';
     document.getElementById('days-left').textContent = data.days_left ? 'Осталось: ' + data.days_left : '';
 
-    // Finances
     document.getElementById('total-income').textContent = formatMoney(data.total_income);
     const bal = Number(data.balance);
     const balEl = document.getElementById('balance');
     balEl.textContent = formatMoney(data.balance);
     balEl.style.color = bal >= 0 ? 'var(--success)' : 'var(--accent)';
 
-    // Transactions
     const txContainer = document.getElementById('transactions');
     if (!data.transactions || data.transactions.length === 0) {
       txContainer.innerHTML = '<div class="empty">Платежей пока нет</div>';
     } else {
-      txContainer.innerHTML = data.transactions.map(tx => `
-        <div class="tx">
-          <div>
-            <div class="tx-name">${tx.category || tx.description || '—'}</div>
-            <div class="tx-date">${formatShortDate(tx.date)}</div>
-          </div>
-          <div class="tx-amount">+${formatMoney(tx.amount)}</div>
-        </div>
-      `).join('');
+      txContainer.innerHTML = data.transactions.map(tx => {
+        return '<div class="tx">' +
+          '<div><div class="tx-name">' + escapeHtml(tx.category || tx.description || '—') + '</div>' +
+          '<div class="tx-date">' + escapeHtml(formatShortDate(tx.date)) + '</div></div>' +
+          '<div class="tx-amount">+' + escapeHtml(formatMoney(tx.amount)) + '</div>' +
+          '</div>';
+      }).join('');
     }
 
-// Photos
-if (data.folder_photos) {
-  fetch(`https://assistcloudai.xyz/webhook/portal-files?folder_id=${data.folder_photos}`)
-    .then(r => r.json())
-    .then(d => {
-      const photos = (d.files || []).filter(f => f.type === 'image');
-      if (photos.length === 0) return;
+    if (data.folder_photos) {
+      fetch('https://assistcloudai.xyz/webhook/portal-files?folder_id=' + encodeURIComponent(data.folder_photos))
+        .then(r => r.json())
+        .then(d => {
+          const photos = (d.files || []).filter(f => f.type === 'image');
+          if (photos.length === 0) return;
 
-      document.getElementById('photos-section').style.display = 'block';
-      document.getElementById('photos-grid').innerHTML = photos.map(f => {
-        const thumb = f.thumb_url || '';
-        const large = toLargeImage(f.full_url || f.thumb_url || f.view_url || '');
-        return `
-          <button type="button" data-photo="${large}" style="border:0;padding:0;border-radius:10px;overflow:hidden;aspect-ratio:4/3;background:#e2ddd8;display:block;cursor:pointer;">
-            <img src="${thumb}" style="width:100%;height:100%;object-fit:cover;" loading="lazy"/>
-          </button>
-        `;
-      }).join('');
+          document.getElementById('photos-section').style.display = 'block';
+          const grid = document.getElementById('photos-grid');
+          grid.innerHTML = photos.map(f => {
+            const thumb = escapeHtml(f.thumb_url || '');
+            const large = escapeHtml(f.full_url || f.thumb_url || f.view_url || '');
+            const title = escapeHtml(f.name || 'Фото');
+            return '<button type="button" data-url="' + large + '" data-title="' + title + '" style="border:0;padding:0;border-radius:10px;overflow:hidden;aspect-ratio:4/3;background:#e2ddd8;display:block;cursor:pointer;">' +
+              '<img src="' + thumb + '" style="width:100%;height:100%;object-fit:cover;" loading="lazy" />' +
+              '</button>';
+          }).join('');
 
-      document.querySelectorAll('#photos-grid [data-photo]').forEach(el => {
-        el.addEventListener('click', () => openPhotoModal(el.dataset.photo));
-      });
-    }).catch(() => {});
-}
+          grid.querySelectorAll('[data-url]').forEach(el => {
+            el.addEventListener('click', () => {
+              openFileModal({ type: 'image', title: el.dataset.title || 'Фото', url: el.dataset.url || '' });
+            });
+          });
+        })
+        .catch(() => {});
+    }
 
-    // Documents
-if (data.folder_docs) {
-  fetch(`https://assistcloudai.xyz/webhook/portal-files?folder_id=${data.folder_docs}`)
-    .then(r => r.json())
-    .then(d => {
-      const files = d.files || [];
-      if (files.length === 0) return;
-      document.getElementById('docs-section').style.display = 'block';
-      document.getElementById('docs-list').innerHTML = files.map(f => `
-        <a href="${f.view_url}" target="_blank" style="display:flex;align-items:center;gap:14px;padding:14px;background:var(--bg);border-radius:10px;text-decoration:none;color:inherit;">
-          <div style="width:38px;height:38px;background:var(--surface);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">📑</div>
-          <div style="font-size:14px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px;">${f.name}</div>
-          <div style="margin-left:auto;color:var(--muted);">↓</div>
-        </a>
-      `).join('');
-    }).catch(() => {});
-}
+    if (data.folder_docs) {
+      fetch('https://assistcloudai.xyz/webhook/portal-files?folder_id=' + encodeURIComponent(data.folder_docs))
+        .then(r => r.json())
+        .then(d => {
+          const files = d.files || [];
+          if (files.length === 0) return;
 
-// Receipts
-if (data.folder_receipts) {
-  fetch(`https://assistcloudai.xyz/webhook/portal-files?folder_id=${data.folder_receipts}`)
-    .then(r => r.json())
-    .then(d => {
-      const files = d.files || [];
-      if (files.length === 0) return;
-      document.getElementById('receipts-section').style.display = 'block';
-      document.getElementById('receipts-list').innerHTML = files.map(f => `
-        <a href="${f.view_url}" target="_blank" style="display:flex;align-items:center;gap:14px;padding:14px;background:var(--bg);border-radius:10px;text-decoration:none;color:inherit;">
-          <div style="width:38px;height:38px;background:var(--surface);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🧾</div>
-          <div style="font-size:14px;font-weight:500;">${f.name}</div>
-          <div style="margin-left:auto;color:var(--muted);">↓</div>
-        </a>
-      `).join('');
-    }).catch(() => {});
-}
+          document.getElementById('docs-section').style.display = 'block';
+          const list = document.getElementById('docs-list');
+          list.innerHTML = files.map(f => {
+            const type = escapeHtml(f.type || 'file');
+            const url = escapeHtml(f.view_url || '');
+            const title = escapeHtml(f.name || 'Документ');
+            return '<button type="button" data-type="' + type + '" data-url="' + url + '" data-title="' + title + '" style="display:flex;align-items:center;gap:14px;padding:14px;background:var(--bg);border-radius:10px;border:0;width:100%;text-align:left;cursor:pointer;">' +
+              '<div style="width:38px;height:38px;background:var(--surface);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">📑</div>' +
+              '<div style="font-size:14px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px;">' + title + '</div>' +
+              '<div style="margin-left:auto;color:var(--muted);">Открыть</div>' +
+              '</button>';
+          }).join('');
 
-// Payment
-window._portalToken = token;
-window._portalName = data.name;
-    
-    // Contact link
-const linkEl = document.getElementById('manager-link');
-if (linkEl && data.contact_link) linkEl.href = data.contact_link;
+          list.querySelectorAll('[data-url]').forEach(el => {
+            el.addEventListener('click', () => {
+              openFileModal({ type: el.dataset.type === 'image' ? 'image' : 'doc', title: el.dataset.title || 'Документ', url: el.dataset.url || '' });
+            });
+          });
+        })
+        .catch(() => {});
+    }
 
-// Last update
-document.getElementById('last-update').textContent =
-  'Данные обновляются в реальном времени';
+    if (data.folder_receipts) {
+      fetch('https://assistcloudai.xyz/webhook/portal-files?folder_id=' + encodeURIComponent(data.folder_receipts))
+        .then(r => r.json())
+        .then(d => {
+          const files = d.files || [];
+          if (files.length === 0) return;
+
+          document.getElementById('receipts-section').style.display = 'block';
+          const list = document.getElementById('receipts-list');
+          list.innerHTML = files.map(f => {
+            const type = escapeHtml(f.type || 'file');
+            const url = escapeHtml(f.view_url || '');
+            const title = escapeHtml(f.name || 'Чек');
+            return '<button type="button" data-type="' + type + '" data-url="' + url + '" data-title="' + title + '" style="display:flex;align-items:center;gap:14px;padding:14px;background:var(--bg);border-radius:10px;border:0;width:100%;text-align:left;cursor:pointer;">' +
+              '<div style="width:38px;height:38px;background:var(--surface);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🧾</div>' +
+              '<div style="font-size:14px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px;">' + title + '</div>' +
+              '<div style="margin-left:auto;color:var(--muted);">Открыть</div>' +
+              '</button>';
+          }).join('');
+
+          list.querySelectorAll('[data-url]').forEach(el => {
+            el.addEventListener('click', () => {
+              openFileModal({ type: el.dataset.type === 'image' ? 'image' : 'doc', title: el.dataset.title || 'Чек', url: el.dataset.url || '' });
+            });
+          });
+        })
+        .catch(() => {});
+    }
+
+    window._portalToken = token;
+    window._portalName = data.name;
+
+    const linkEl = document.getElementById('manager-link');
+    if (linkEl && data.contact_link) linkEl.href = data.contact_link;
+
+    document.getElementById('last-update').textContent = 'Данные обновляются в реальном времени';
   }
 
-  // ── INIT ──
   async function init() {
     const tg = window.Telegram?.WebApp;
     const tgId = tg?.initDataUnsafe?.user?.id;
@@ -813,9 +747,9 @@ document.getElementById('last-update').textContent =
 
     let apiUrl;
     if (tgId) {
-      apiUrl = `https://assistcloudai.xyz/webhook/portal-by-tgid?tg_id=${tgId}`;
+      apiUrl = 'https://assistcloudai.xyz/webhook/portal-by-tgid?tg_id=' + encodeURIComponent(tgId);
     } else if (token) {
-      apiUrl = `${API_BASE}?token=${token}`;
+      apiUrl = API_BASE + '?token=' + encodeURIComponent(token);
     } else {
       document.getElementById('loader').style.display = 'none';
       document.getElementById('error').style.display = 'flex';
@@ -826,15 +760,13 @@ document.getElementById('last-update').textContent =
       const res = await fetch(apiUrl);
       if (!res.ok) throw new Error('not found');
       const data = await res.json();
-
       if (!data.name || data.error) throw new Error('empty');
 
       document.getElementById('loader').style.display = 'none';
       document.getElementById('error').style.display = 'none';
       document.getElementById('main').style.display = 'block';
       render(data, token || data.portal_token);
-
-    } catch(e) {
+    } catch (e) {
       document.getElementById('loader').style.display = 'none';
       document.getElementById('error').style.display = 'flex';
     }
@@ -843,14 +775,18 @@ document.getElementById('last-update').textContent =
   init();
 
   async function confirmPayment() {
-    const amount = document.getElementById('payment-amount').value;
+    const amount = document.getElementById('payment-amount')?.value;
     if (!amount || isNaN(amount) || Number(amount) <= 0) {
       alert('Введите сумму перевода');
       return;
     }
+
     const btn = document.getElementById('payment-confirm-btn');
-    btn.disabled = true;
-    btn.textContent = 'Отправляем...';
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = 'Отправляем...';
+    }
+
     try {
       await fetch('https://assistcloudai.xyz/webhook/portal-payment', {
         method: 'POST',
@@ -861,14 +797,19 @@ document.getElementById('last-update').textContent =
           name: window._portalName
         })
       });
-      document.getElementById('payment-form').style.display = 'none';
-      document.getElementById('payment-success').style.display = 'block';
-    } catch(e) {
-      btn.disabled = false;
-      btn.textContent = 'Я оплатил';
+      const form = document.getElementById('payment-form');
+      const success = document.getElementById('payment-success');
+      if (form) form.style.display = 'none';
+      if (success) success.style.display = 'block';
+    } catch (e) {
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = 'Я оплатил';
+      }
       alert('Ошибка. Попробуйте ещё раз.');
     }
   }
 </script>
+
 </body>
 </html>
