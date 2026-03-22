@@ -1016,8 +1016,13 @@
 
       list.innerHTML = files.map(f => {
         const type = escapeHtml(f.type || 'file');
-        const url = escapeHtml(f.view_url || '');
-        const title = escapeHtml(f.name || 'Документ');
+        const isImage = (f.type || '') === 'image';
+        const url = escapeHtml(
+          isImage
+            ? (f.full_url || f.thumb_url || f.view_url || '')
+            : (f.view_url || '')
+);
+const title = escapeHtml(f.name || 'Документ');
 
         return '<button type="button" data-type="' + type + '" data-url="' + url + '" data-title="' + title + '" style="display:flex;align-items:center;gap:14px;padding:14px;background:var(--bg);border-radius:10px;border:0;width:100%;text-align:left;cursor:pointer;">' +
           '<div style="width:38px;height:38px;background:var(--surface);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">📑</div>' +
@@ -1072,8 +1077,13 @@
 
       list.innerHTML = files.map(f => {
         const type = escapeHtml(f.type || 'file');
-        const url = escapeHtml(f.view_url || '');
-        const title = escapeHtml(f.name || 'Чек');
+        const isImage = (f.type || '') === 'image';
+        const url = escapeHtml(
+          isImage
+            ? (f.full_url || f.thumb_url || f.view_url || '')
+            : (f.view_url || '')
+);
+const title = escapeHtml(f.name || 'Чек');
 
         return '<button type="button" data-type="' + type + '" data-url="' + url + '" data-title="' + title + '" style="display:flex;align-items:center;gap:14px;padding:14px;background:var(--bg);border-radius:10px;border:0;width:100%;text-align:left;cursor:pointer;">' +
           '<div style="width:38px;height:38px;background:var(--surface);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🧾</div>' +
