@@ -74,7 +74,7 @@
   .header {
     background: var(--ink);
     color: #F5F2EE;
-    padding: 84px 18px 16px;
+    padding: 84px 18px 18px;
     position: relative;
     overflow: hidden;
   }
@@ -92,24 +92,27 @@
     letter-spacing: 0.12em;
     text-transform: uppercase;
     color: var(--muted);
-    margin-bottom: 8px;
+    margin-bottom: 10px;
+    min-height: 28px;
+    display: flex;
+    align-items: center;
   }
   .header-title {
   font-family: 'Manrope', serif;
   font-size: 18px;
   font-weight: 700;
-  line-height: 1.15;
+  line-height: 1.2;
   margin-bottom: 8px;
-  padding-right: 136px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  padding-right: 0px;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
 }
 
   .status-pill {
   position: absolute;
   top: calc(env(safe-area-inset-top, 0px) + 90px);
-  right: 14px;
+  right: 16px;
   display: inline-flex;
   align-items: center;
   gap: 7px;
@@ -393,8 +396,7 @@
   <div class="header">
     <div class="header-label">Ваш объект</div>
     <div class="header-title" id="header-title">—</div>
-   <div id="header-stage" style="margin-top:0;margin-bottom:4px;padding-right:136px;color:#c9c3bc;font-size:13px;font-weight:500;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Текущий этап: —</div>
-
+   <div id="header-stage" style="margin-top:0;margin-bottom:6px;color:#c9c3bc;font-size:14px;font-weight:500;line-height:1.35;white-space:normal;overflow:visible;text-overflow:clip;">Текущий этап: —</div>
 
     <div class="status-pill">
       <div class="status-dot"></div>
