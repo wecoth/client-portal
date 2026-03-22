@@ -204,6 +204,68 @@
   .section-title .icon { font-size: 16px; opacity: 0.6; }
   @keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
 
+.photos-title {
+  justify-content: space-between;
+  align-items: center;
+}
+
+.photos-toggle-btn {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: 10px;
+  height: 34px;
+  padding: 0 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+.photos-wrap {
+  position: relative;
+  transition: max-height .25s ease;
+}
+
+.photos-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-auto-rows: 118px;
+  gap: 8px;
+}
+
+.photos-grid button {
+  border: 0;
+  padding: 0;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #e2ddd8;
+  cursor: pointer;
+}
+
+.photos-grid img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* 2 ряда + половина 3-го */
+.photos-collapsed {
+  max-height: calc(118px * 2.5 + 8px * 2);
+  overflow: hidden;
+}
+
+.photos-collapsed::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 54px;
+  background: linear-gradient(to bottom, rgba(245,242,238,0), var(--bg));
+  pointer-events: none;
+}
+  
   /* FINANCES */
   .finance-hero {
     display: grid;
@@ -462,12 +524,15 @@
 </div>
 
   <!-- PHOTOS -->
-  <div class="section-title" style="justify-content:space-between;">
-  <span><span class="icon">📸</span> Фото с объекта</span>
-  <button id="photos-toggle" type="button" style="display:none;align-items:center;justify-content:center;border:1px solid #d7d2cc;background:#fff;border-radius:10px;width:42px;height:34px;cursor:pointer;font-size:18px;line-height:1;color:#5e5750;">˅</button>
-
+  <div class="section" id="photos-section" style="display:none">
+  <div class="section-title photos-title">
+    <span><span class="icon">📸</span> Фото с объекта</span>
+    <button id="photos-toggle" type="button" class="photos-toggle-btn">Развернуть</button>
+  </div>
+  <div id="photos-wrap" class="photos-wrap photos-collapsed">
+    <div id="photos-grid" class="photos-grid"></div>
+  </div>
 </div>
-
 
   <!-- DOCUMENTS -->
   <div class="section" id="docs-section" style="display:none">
@@ -680,53 +745,52 @@
 
       document.getElementById('photos-section').style.display = 'block';
 
-      const MAX_PHOTOS_PREVIEW = 4;
-      let photosExpanded = false;
       const grid = document.getElementById('photos-grid');
+      const wrap = document.getElementById('photos-wrap');
       const toggleBtn = document.getElementById('photos-toggle');
 
-      function bindPhotoClicks() {
-        grid.querySelectorAll('[data-url]').forEach(el => {
-          el.onclick = () => {
-            openFileModal({
-              type: 'image',
-              title: el.dataset.title || 'Фото',
-              url: el.dataset.url || ''
-            });
-          };
-        });
-      }
+      grid.innerHTML = photos.map(f => {
+        const thumb = escapeHtml(f.thumb_url || f.view_url || '');
+        const large = escapeHtml(f.full_url || f.thumb_url || f.view_url || '');
+        const title = escapeHtml(f.name || 'Фото');
 
-      function renderPhotosGrid() {
-        const visible = photosExpanded ? photos : photos.slice(0, MAX_PHOTOS_PREVIEW);
+        return '<button type="button" data-url="' + large + '" data-title="' + title + '">' +
+          '<img src="' + thumb + '" loading="lazy" />' +
+          '</button>';
+      }).join('');
 
-        grid.innerHTML = visible.map(f => {
-          const thumb = escapeHtml(f.thumb_url || f.view_url || '');
-          const large = escapeHtml(f.full_url || f.thumb_url || f.view_url || '');
-          const title = escapeHtml(f.name || 'Фото');
-
-          return '<button type="button" data-url="' + large + '" data-title="' + title + '" style="border:0;padding:0;border-radius:10px;overflow:hidden;aspect-ratio:4/3;background:#e2ddd8;display:block;cursor:pointer;">' +
-            '<img src="' + thumb + '" style="width:100%;height:100%;object-fit:cover;display:block;" loading="lazy" />' +
-            '</button>';
-        }).join('');
-
-        bindPhotoClicks();
-
-        if (toggleBtn) {
-          const needToggle = photos.length > MAX_PHOTOS_PREVIEW;
-          toggleBtn.style.display = needToggle ? 'inline-flex' : 'none';
-          toggleBtn.textContent = photosExpanded ? '˄' : '˅';
-        }
-      }
-
-      if (toggleBtn) {
-        toggleBtn.onclick = () => {
-          photosExpanded = !photosExpanded;
-          renderPhotosGrid();
+      grid.querySelectorAll('[data-url]').forEach(el => {
+        el.onclick = () => {
+          openFileModal({
+            type: 'image',
+            title: el.dataset.title || 'Фото',
+            url: el.dataset.url || ''
+          });
         };
+      });
+
+      // если фото мало — не нужен toggle/градиент
+      if (photos.length <= 4) {
+        wrap.classList.remove('photos-collapsed');
+        toggleBtn.style.display = 'none';
+        return;
       }
 
-      renderPhotosGrid();
+      let expanded = false;
+      toggleBtn.style.display = 'inline-flex';
+      toggleBtn.textContent = 'Развернуть';
+      wrap.classList.add('photos-collapsed');
+
+      toggleBtn.onclick = () => {
+        expanded = !expanded;
+        if (expanded) {
+          wrap.classList.remove('photos-collapsed');
+          toggleBtn.textContent = 'Свернуть';
+        } else {
+          wrap.classList.add('photos-collapsed');
+          toggleBtn.textContent = 'Развернуть';
+        }
+      };
     })
     .catch(() => {
       document.getElementById('photos-section').style.display = 'none';
