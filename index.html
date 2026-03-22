@@ -214,12 +214,19 @@
   background: var(--surface);
   border-radius: 10px;
   height: 34px;
-  padding: 0 12px;
+  min-width: 108px;
+  padding: 0 14px;
   font-size: 13px;
   font-weight: 600;
   color: var(--ink-soft);
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  text-align: center;
 }
+
 
 .photos-wrap {
   position: relative;
@@ -249,9 +256,9 @@
   display: block;
 }
 
-/* 2 ряда + половина 3-го */
+/* 1 ряд + половина 2-го */
 .photos-collapsed {
-  max-height: calc(118px * 2.5 + 8px * 2);
+  max-height: calc(118px * 1.5 + 8px * 1);
   overflow: hidden;
 }
 
