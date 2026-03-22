@@ -668,52 +668,55 @@
     }
 
     if (data.folder_photos) {
-      fetch('https://assistcloudai.xyz/webhook/portal-files?folder_id=' + encodeURIComponent(data.folder_photos))
-        .then(r => r.json())
-        .then(d => {
-          const photos = (d.files || []).filter(f => f.type === 'image');
-          if (photos.length === 0) return;
+  fetch('https://assistcloudai.xyz/webhook/portal-files?folder_id=' + encodeURIComponent(data.folder_photos))
+    .then(r => r.json())
+    .then(d => {
+      const photos = (d.files || []).filter(f => f.type === 'image');
+      if (photos.length === 0) return;
 
-          document.getElementById('photos-section').style.display = 'block';
-          const grid = document.getElementById('photos-grid');
-          const MAX_PHOTOS_PREVIEW = 4;
-let photosExpanded = false;
-const grid = document.getElementById('photos-grid');
-const toggleBtn = document.getElementById('photos-toggle');
+      document.getElementById('photos-section').style.display = 'block';
 
-function renderPhotosGrid() {
-  const visible = photosExpanded ? photos : photos.slice(0, MAX_PHOTOS_PREVIEW);
+      const MAX_PHOTOS_PREVIEW = 4;
+      let photosExpanded = false;
+      const grid = document.getElementById('photos-grid');
+      const toggleBtn = document.getElementById('photos-toggle');
 
-  grid.innerHTML = visible.map(f => {
-    const thumb = escapeHtml(f.thumb_url || '');
-    const large = escapeHtml(f.full_url || f.thumb_url || f.view_url || '');
-    const title = escapeHtml(f.name || 'Фото');
-    return '<button type="button" data-url="' + large + '" data-title="' + title + '" style="border:0;padding:0;border-radius:10px;overflow:hidden;aspect-ratio:4/3;background:#e2ddd8;display:block;cursor:pointer;">' +
-      '<img src="' + thumb + '" style="width:100%;height:100%;object-fit:cover;" loading="lazy" />' +
-      '</button>';
-  }).join('');
+      function renderPhotosGrid() {
+        const visible = photosExpanded ? photos : photos.slice(0, MAX_PHOTOS_PREVIEW);
 
-  grid.querySelectorAll('[data-url]').forEach(el => {
-    el.addEventListener('click', () => {
-      openFileModal({ type: 'image', title: el.dataset.title || 'Фото', url: el.dataset.url || '' });
-    });
-  });
+        grid.innerHTML = visible.map(f => {
+          const thumb = escapeHtml(f.thumb_url || '');
+          const large = escapeHtml(f.full_url || f.thumb_url || f.view_url || '');
+          const title = escapeHtml(f.name || 'Фото');
+          return '<button type="button" data-url="' + large + '" data-title="' + title + '" style="border:0;padding:0;border-radius:10px;overflow:hidden;aspect-ratio:4/3;background:#e2ddd8;display:block;cursor:pointer;">' +
+            '<img src="' + thumb + '" style="width:100%;height:100%;object-fit:cover;" loading="lazy" />' +
+            '</button>';
+        }).join('');
 
-  if (toggleBtn) {
-    const needToggle = photos.length > MAX_PHOTOS_PREVIEW;
-    toggleBtn.style.display = needToggle ? 'inline-block' : 'none';
-    toggleBtn.textContent = photosExpanded ? '˄' : '˅';
-  }
+        grid.querySelectorAll('[data-url]').forEach(el => {
+          el.addEventListener('click', () => {
+            openFileModal({ type: 'image', title: el.dataset.title || 'Фото', url: el.dataset.url || '' });
+          });
+        });
+
+        if (toggleBtn) {
+          const needToggle = photos.length > MAX_PHOTOS_PREVIEW;
+          toggleBtn.style.display = needToggle ? 'inline-block' : 'none';
+          toggleBtn.textContent = photosExpanded ? '˄' : '˅';
+        }
+      }
+
+      if (toggleBtn) {
+        toggleBtn.onclick = () => {
+          photosExpanded = !photosExpanded;
+          renderPhotosGrid();
+        };
+      }
+
+      renderPhotosGrid();
+    })
+    .catch(() => {});
 }
-
-if (toggleBtn) {
-  toggleBtn.onclick = () => {
-    photosExpanded = !photosExpanded;
-    renderPhotosGrid();
-  };
-}
-
-renderPhotosGrid();
 
           grid.querySelectorAll('[data-url]').forEach(el => {
             el.addEventListener('click', () => {
