@@ -718,15 +718,6 @@
     .catch(() => {});
 }
 
-          grid.querySelectorAll('[data-url]').forEach(el => {
-            el.addEventListener('click', () => {
-              openFileModal({ type: 'image', title: el.dataset.title || 'Фото', url: el.dataset.url || '' });
-            });
-          });
-        })
-        .catch(() => {});
-    }
-
     if (data.folder_docs) {
       fetch('https://assistcloudai.xyz/webhook/portal-files?folder_id=' + encodeURIComponent(data.folder_docs))
         .then(r => r.json())
