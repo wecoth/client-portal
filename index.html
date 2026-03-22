@@ -262,6 +262,7 @@
     font-size: 12px;
     color: var(--muted);
     margin-top: 4px;
+    display: none;
   }
 
   /* MANAGER */
@@ -619,13 +620,13 @@
     setTimeout(() => {
       document.getElementById('progress-fill').style.width = pct + '%';
     }, 100);
-    document.getElementById('date-start-label').textContent = 'Начало: ' + formatDate(data.date_start);
-    document.getElementById('date-end-label').textContent = 'Сдача: ' + formatDate(data.date_end);
+    document.getElementById('date-start-label').textContent = data.days_passed ? ('Прошло: ' + data.days_passed) : 'Прошло: —';
+    document.getElementById('date-end-label').textContent = data.days_left ? ('Осталось: ' + data.days_left) : 'Осталось: —';
 
     document.getElementById('date-start').textContent = formatDate(data.date_start);
     document.getElementById('date-end').textContent = formatDate(data.date_end);
-    document.getElementById('days-passed').textContent = data.days_passed ? 'Прошло: ' + data.days_passed : '';
-    document.getElementById('days-left').textContent = data.days_left ? 'Осталось: ' + data.days_left : '';
+    document.getElementById('days-passed').textContent = '';
+    document.getElementById('days-left').textContent = '';
 
     document.getElementById('total-income').textContent = formatMoney(data.total_income);
     const bal = Number(data.balance);
