@@ -455,8 +455,13 @@ if (data.folder_photos) {
         const thumb = f.thumb_url || '';
         const large = toLargeImage(f.full_url || f.thumb_url || f.view_url || '');
         const safeName = (f.name || 'Фото').replace(/"/g, '&quot;');
+
         return `
-          <button type="button" data-type="image" data-url="${large}" data-title="${safeName}" style="border:0;padding:0;border-radius:10px;overflow:hidden;aspect-ratio:4/3;background:#e2ddd8;display:block;cursor:pointer;">
+          <button type="button"
+                  data-type="image"
+                  data-url="${large}"
+                  data-title="${safeName}"
+                  style="border:0;padding:0;border-radius:10px;overflow:hidden;aspect-ratio:4/3;background:#e2ddd8;display:block;cursor:pointer;">
             <img src="${thumb}" style="width:100%;height:100%;object-fit:cover;" loading="lazy"/>
           </button>
         `;
@@ -471,9 +476,9 @@ if (data.folder_photos) {
           });
         });
       });
-    }).catch(() => {});
+    })
+    .catch(() => {});
 }
-
 
   // Documents
 if (data.folder_docs) {
