@@ -231,6 +231,7 @@
 .photos-wrap {
   position: relative;
   transition: max-height .25s ease;
+  background: var(--surface);
 }
 
 .photos-grid {
@@ -268,9 +269,17 @@
   left: 0;
   right: 0;
   bottom: 0;
-  height: 54px;
-  background: linear-gradient(to bottom, rgba(245,242,238,0), var(--bg));
+  height: 88px;
   pointer-events: none;
+  background:
+    linear-gradient(
+      to bottom,
+      rgba(255,255,255,0) 0%,
+      rgba(255,255,255,0.18) 20%,
+      rgba(255,255,255,0.52) 45%,
+      rgba(255,255,255,0.82) 72%,
+      var(--surface) 100%
+    );
 }
   
   /* FINANCES */
