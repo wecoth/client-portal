@@ -605,7 +605,7 @@
   function render(data, token) {
     document.title = data.name || 'Мой объект';
     document.getElementById('header-title').textContent = data.name || '—';
-    document.getElementById('header-stage').textContent = 'Этап: ' + (data.current_stage || '—');
+    document.getElementById('header-stage').textContent = 'Текущий этап: ' + (data.current_stage || '—');
 
     const daysLeft = data.days_left || '';
     const daysNum = parseInt(daysLeft, 10);
