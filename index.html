@@ -148,7 +148,7 @@
   .progress-section {
     background: var(--surface);
     padding: 20px 24px;
-    border-bottom: 1px solid var(--border);
+    border-bottom: none;
   }
   .progress-meta {
     display: flex;
@@ -198,6 +198,14 @@
     margin-top: 8px;
     animation: fadeUp 0.5s ease both;
   }
+
+  .dates-section {
+  margin-top: 0;
+  border-top: none !important;
+  border-bottom: 1px solid var(--border);
+  padding-top: 8px;
+}
+
   .section-title {
     font-family: 'Manrope', serif;
     font-size: 20px;
@@ -530,8 +538,7 @@
   </div>
 
   <!-- DATES -->
-  <div class="section">
-    <div class="section-title">Сроки</div>
+  <div class="section dates-section">
     <div class="dates-grid">
       <div class="date-card">
         <div class="date-card-label">Начало работ</div>
