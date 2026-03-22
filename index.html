@@ -281,6 +281,30 @@
       var(--surface) 100%
     );
 }
+
+  .photos-collapsed-list {
+  max-height: 92px;
+  overflow: hidden;
+  position: relative;
+  background: var(--surface);
+}
+
+.photos-collapsed-list::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 70px;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    rgba(255,255,255,0) 0%,
+    rgba(255,255,255,0.24) 30%,
+    rgba(255,255,255,0.7) 65%,
+    var(--surface) 100%
+  );
+}
   
   /* FINANCES */
   .finance-hero {
@@ -552,15 +576,27 @@
 
   <!-- DOCUMENTS -->
   <div class="section" id="docs-section" style="display:none">
-    <div class="section-title"><span class="icon">📄</span> Документы</div>
+  <div class="section-title photos-title">
+    <span>Документы</span>
+    <button id="docs-toggle" type="button" class="photos-toggle-btn">Развернуть</button>
+  </div>
+  <div id="docs-wrap" class="photos-wrap photos-collapsed-list">
     <div id="docs-list" style="display:flex;flex-direction:column;gap:8px;"></div>
   </div>
+</div>
+
 
   <!-- RECEIPTS -->
   <div class="section" id="receipts-section" style="display:none">
-    <div class="section-title"><span class="icon">🧾</span> Чеки</div>
+  <div class="section-title photos-title">
+    <span>Чеки</span>
+    <button id="receipts-toggle" type="button" class="photos-toggle-btn">Развернуть</button>
+  </div>
+  <div id="receipts-wrap" class="photos-wrap photos-collapsed-list">
     <div id="receipts-list" style="display:flex;flex-direction:column;gap:8px;"></div>
   </div>
+</div>
+
 
   <!-- MANAGER -->
 
@@ -814,62 +850,116 @@
 }
 
     if (data.folder_docs) {
-      fetch('https://assistcloudai.xyz/webhook/portal-files?folder_id=' + encodeURIComponent(data.folder_docs))
-        .then(r => r.json())
-        .then(d => {
-          const files = d.files || [];
-          if (files.length === 0) return;
+  fetch('https://assistcloudai.xyz/webhook/portal-files?folder_id=' + encodeURIComponent(data.folder_docs))
+    .then(r => r.json())
+    .then(d => {
+      const files = d.files || [];
+      if (files.length === 0) return;
 
-          document.getElementById('docs-section').style.display = 'block';
-          const list = document.getElementById('docs-list');
-          list.innerHTML = files.map(f => {
-            const type = escapeHtml(f.type || 'file');
-            const url = escapeHtml(f.view_url || '');
-            const title = escapeHtml(f.name || 'Документ');
-            return '<button type="button" data-type="' + type + '" data-url="' + url + '" data-title="' + title + '" style="display:flex;align-items:center;gap:14px;padding:14px;background:var(--bg);border-radius:10px;border:0;width:100%;text-align:left;cursor:pointer;">' +
-              '<div style="width:38px;height:38px;background:var(--surface);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">📑</div>' +
-              '<div style="font-size:14px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px;">' + title + '</div>' +
-              '<div style="margin-left:auto;color:var(--muted);">Открыть</div>' +
-              '</button>';
-          }).join('');
+      document.getElementById('docs-section').style.display = 'block';
 
-          list.querySelectorAll('[data-url]').forEach(el => {
-            el.addEventListener('click', () => {
-              openFileModal({ type: el.dataset.type === 'image' ? 'image' : 'doc', title: el.dataset.title || 'Документ', url: el.dataset.url || '' });
-            });
+      const list = document.getElementById('docs-list');
+      const docsWrap = document.getElementById('docs-wrap');
+      const docsToggle = document.getElementById('docs-toggle');
+
+      list.innerHTML = files.map(f => {
+        const type = escapeHtml(f.type || 'file');
+        const url = escapeHtml(f.view_url || '');
+        const title = escapeHtml(f.name || 'Документ');
+
+        return '<button type="button" data-type="' + type + '" data-url="' + url + '" data-title="' + title + '" style="display:flex;align-items:center;gap:14px;padding:14px;background:var(--bg);border-radius:10px;border:0;width:100%;text-align:left;cursor:pointer;">' +
+          '<div style="width:38px;height:38px;background:var(--surface);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">📑</div>' +
+          '<div style="font-size:14px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px;">' + title + '</div>' +
+          '<div style="margin-left:auto;color:var(--muted);">Открыть</div>' +
+          '</button>';
+      }).join('');
+
+      list.querySelectorAll('[data-url]').forEach(el => {
+        el.onclick = () => {
+          openFileModal({
+            type: el.dataset.type === 'image' ? 'image' : 'doc',
+            title: el.dataset.title || 'Документ',
+            url: el.dataset.url || ''
           });
-        })
-        .catch(() => {});
-    }
+        };
+      });
 
-    if (data.folder_receipts) {
-      fetch('https://assistcloudai.xyz/webhook/portal-files?folder_id=' + encodeURIComponent(data.folder_receipts))
-        .then(r => r.json())
-        .then(d => {
-          const files = d.files || [];
-          if (files.length === 0) return;
+      if (!docsWrap || !docsToggle) return;
 
-          document.getElementById('receipts-section').style.display = 'block';
-          const list = document.getElementById('receipts-list');
-          list.innerHTML = files.map(f => {
-            const type = escapeHtml(f.type || 'file');
-            const url = escapeHtml(f.view_url || '');
-            const title = escapeHtml(f.name || 'Чек');
-            return '<button type="button" data-type="' + type + '" data-url="' + url + '" data-title="' + title + '" style="display:flex;align-items:center;gap:14px;padding:14px;background:var(--bg);border-radius:10px;border:0;width:100%;text-align:left;cursor:pointer;">' +
-              '<div style="width:38px;height:38px;background:var(--surface);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🧾</div>' +
-              '<div style="font-size:14px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px;">' + title + '</div>' +
-              '<div style="margin-left:auto;color:var(--muted);">Открыть</div>' +
-              '</button>';
-          }).join('');
+      if (files.length <= 1) {
+        docsToggle.style.display = 'none';
+        docsWrap.classList.remove('photos-collapsed-list');
+      } else {
+        let docsExpanded = false;
+        docsToggle.style.display = 'inline-flex';
+        docsToggle.textContent = 'Развернуть';
+        docsWrap.classList.add('photos-collapsed-list');
 
-          list.querySelectorAll('[data-url]').forEach(el => {
-            el.addEventListener('click', () => {
-              openFileModal({ type: el.dataset.type === 'image' ? 'image' : 'doc', title: el.dataset.title || 'Чек', url: el.dataset.url || '' });
-            });
+        docsToggle.onclick = () => {
+          docsExpanded = !docsExpanded;
+          docsWrap.classList.toggle('photos-collapsed-list', !docsExpanded);
+          docsToggle.textContent = docsExpanded ? 'Свернуть' : 'Развернуть';
+        };
+      }
+    })
+    .catch(() => {});
+}
+
+   if (data.folder_receipts) {
+  fetch('https://assistcloudai.xyz/webhook/portal-files?folder_id=' + encodeURIComponent(data.folder_receipts))
+    .then(r => r.json())
+    .then(d => {
+      const files = d.files || [];
+      if (files.length === 0) return;
+
+      document.getElementById('receipts-section').style.display = 'block';
+
+      const list = document.getElementById('receipts-list');
+      const receiptsWrap = document.getElementById('receipts-wrap');
+      const receiptsToggle = document.getElementById('receipts-toggle');
+
+      list.innerHTML = files.map(f => {
+        const type = escapeHtml(f.type || 'file');
+        const url = escapeHtml(f.view_url || '');
+        const title = escapeHtml(f.name || 'Чек');
+
+        return '<button type="button" data-type="' + type + '" data-url="' + url + '" data-title="' + title + '" style="display:flex;align-items:center;gap:14px;padding:14px;background:var(--bg);border-radius:10px;border:0;width:100%;text-align:left;cursor:pointer;">' +
+          '<div style="width:38px;height:38px;background:var(--surface);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🧾</div>' +
+          '<div style="font-size:14px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px;">' + title + '</div>' +
+          '<div style="margin-left:auto;color:var(--muted);">Открыть</div>' +
+          '</button>';
+      }).join('');
+
+      list.querySelectorAll('[data-url]').forEach(el => {
+        el.onclick = () => {
+          openFileModal({
+            type: el.dataset.type === 'image' ? 'image' : 'doc',
+            title: el.dataset.title || 'Чек',
+            url: el.dataset.url || ''
           });
-        })
-        .catch(() => {});
-    }
+        };
+      });
+
+      if (!receiptsWrap || !receiptsToggle) return;
+
+      if (files.length <= 1) {
+        receiptsToggle.style.display = 'none';
+        receiptsWrap.classList.remove('photos-collapsed-list');
+      } else {
+        let receiptsExpanded = false;
+        receiptsToggle.style.display = 'inline-flex';
+        receiptsToggle.textContent = 'Развернуть';
+        receiptsWrap.classList.add('photos-collapsed-list');
+
+        receiptsToggle.onclick = () => {
+          receiptsExpanded = !receiptsExpanded;
+          receiptsWrap.classList.toggle('photos-collapsed-list', !receiptsExpanded);
+          receiptsToggle.textContent = receiptsExpanded ? 'Свернуть' : 'Развернуть';
+        };
+      }
+    })
+    .catch(() => {});
+}
 
     window._portalToken = token;
     window._portalName = data.name;
