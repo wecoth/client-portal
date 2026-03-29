@@ -1310,26 +1310,44 @@ const title = escapeHtml(f.name || 'Чек');
 
   const container = document.getElementById('est-phases');
   container.innerHTML = data.phases.map((phase, pi) => {
+
+    const hasAct = phase.act_total > 0;
+
     const sections = phase.sections.map(sec => {
-      const rows = sec.items.map(item => `
-        <div style="display:grid;grid-template-columns:22px 1fr auto;gap:6px;padding:10px 14px;border-bottom:1px solid var(--border);font-size:13px;align-items:start;">
+      const rows = sec.items.map(item => {
+        const hasActData = item.act_qty !== undefined;
+        const diff = item.qty_diff || 0;
+        const diffAbs = Math.abs(diff).toFixed(2).replace(/\.?0+$/, '');
+        const diffColor = diff > 0.01 ? '#C4602A' : diff < -0.01 ? '#4A7C59' : 'var(--muted)';
+        const diffSign = diff > 0.01 ? '▲ +' : diff < -0.01 ? '▼ −' : '';
+        const diffText = hasActData && diff !== 0 ? `<span style="color:${diffColor};font-size:11px;font-weight:600;margin-left:4px;">${diffSign}${diffAbs}</span>` : '';
+
+        const qtyDisplay = hasActData
+          ? `<span style="color:var(--ink-soft);text-decoration:line-through;font-size:11px;">${item.qty}</span> → <span style="color:${diffColor};font-weight:600;">${item.act_qty}</span>${diffText}`
+          : `${item.qty}`;
+
+        const priceDisplay = hasActData
+          ? `<div style="font-weight:600;color:var(--ink);text-align:right;white-space:nowrap;">${fmtRub(item.act_total)}</div>
+             <div style="font-size:11px;color:var(--muted);text-align:right;text-decoration:line-through;">${fmtRub(item.price_total)}</div>`
+          : `<div style="font-weight:600;color:var(--ink);text-align:right;white-space:nowrap;">${fmtRub(item.price_total)}</div>`;
+
+        return `<div style="display:grid;grid-template-columns:22px 1fr auto;gap:6px;padding:10px 14px;border-bottom:1px solid var(--border);font-size:13px;align-items:start;">
           <div style="color:var(--muted);font-size:11px;padding-top:2px;">${escapeHtml(String(item.num))}</div>
           <div>
             <div style="color:var(--ink);line-height:1.35;">${escapeHtml(item.name)}</div>
-            <div style="font-size:11px;color:var(--ink-soft);margin-top:2px;">${escapeHtml(item.unit)} × ${item.qty} · ${fmtRub(item.price_unit)} за ед.</div>
+            <div style="font-size:11px;color:var(--ink-soft);margin-top:2px;">${escapeHtml(item.unit)} × ${qtyDisplay} · ${fmtRub(item.price_unit)} за ед.</div>
           </div>
-          <div style="font-weight:600;color:var(--ink);text-align:right;white-space:nowrap;">${fmtRub(item.price_total)}</div>
-        </div>`).join('');
+          <div>${priceDisplay}</div>
+        </div>`;
+      }).join('');
       const secTitle = sec.title ? `<div style="padding:8px 14px 4px;font-size:11px;font-weight:600;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.05em;border-top:1px solid var(--border);">${escapeHtml(sec.title)}</div>` : '';
       return secTitle + rows;
     }).join('');
 
-    const extraItems = (phase.extra_items || []);
+    const extraItems = phase.extra_items || [];
     const extraBlock = extraItems.length > 0 ? `
       <div style="border-top:2px solid var(--accent-light);">
-        <div style="padding:8px 14px 4px;font-size:11px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.05em;">
-          + Доп. работы
-        </div>
+        <div style="padding:8px 14px 4px;font-size:11px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.05em;">+ Доп. работы</div>
         ${extraItems.map(item => `
           <div style="display:grid;grid-template-columns:1fr auto;gap:6px;padding:10px 14px;border-bottom:1px solid var(--border);font-size:13px;align-items:start;">
             <div>
@@ -1340,27 +1358,47 @@ const title = escapeHtml(f.name || 'Чек');
           </div>`).join('')}
       </div>` : '';
 
+    const actBlock = hasAct ? `
+      <div style="border-top:2px solid var(--border);background:var(--bg);padding:14px 16px;display:flex;flex-direction:column;gap:8px;">
+        <div style="display:flex;justify-content:space-between;font-size:13px;">
+          <span style="color:var(--ink-soft);">По договору</span>
+          <span style="color:var(--ink-soft);text-decoration:line-through;">${fmtRub(phase.phase_total)}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;">
+          <span style="color:var(--ink-soft);">Факт СМР</span>
+          <span style="font-weight:600;color:var(--ink);">${fmtRub(phase.act_total - (phase.act_extra_total || 0))}</span>
+        </div>
+        ${extraItems.length > 0 ? `<div style="display:flex;justify-content:space-between;font-size:13px;">
+          <span style="color:var(--accent);">+ Доп. работы</span>
+          <span style="font-weight:600;color:var(--accent);">${fmtRub(data.extra_total)}</span>
+        </div>` : ''}
+        <div style="display:flex;justify-content:space-between;font-size:14px;font-weight:700;padding-top:8px;border-top:1px solid var(--border);">
+          <span style="color:var(--ink);">Итого к оплате</span>
+          <span style="color:var(--ink);">${fmtRub(phase.act_final)}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;">
+          <span style="color:var(--ink-soft);">Аванс (60%)</span>
+          <span style="color:var(--ink-soft);">−${fmtRub(phase.act_advance)}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:15px;font-weight:700;padding-top:8px;border-top:1px solid var(--border);">
+          <span style="color:var(--ink);">К доплате</span>
+          <span style="color:var(--accent);">${fmtRub(phase.act_to_pay)}</span>
+        </div>
+      </div>` : '';
+
     const extraTotal = extraItems.reduce((s, i) => s + (i.price_total || 0), 0);
-    const totalLabel = extraTotal > 0
-      ? `${fmtRub(phase.phase_total)} <span style="font-size:11px;color:var(--accent);font-weight:500;">+${fmtRub(extraTotal)} доп.</span>`
-      : fmtRub(phase.phase_total);
+    const badgeTotal = hasAct ? fmtRub(phase.act_final) : fmtRub(phase.phase_total + extraTotal);
 
     return `<div style="border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:8px;">
       <div onclick="togglePhase(${pi})" style="display:flex;align-items:center;gap:10px;padding:14px 16px;cursor:pointer;background:var(--surface);">
         <span style="font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;background:var(--accent-light);color:var(--accent);padding:4px 10px;border-radius:100px;flex-shrink:0;">${escapeHtml(phase.phase)}</span>
-        <span style="flex:1;font-size:13px;font-weight:600;color:var(--ink);">${totalLabel}</span>
+        <span style="flex:1;font-size:13px;font-weight:600;color:var(--ink);">${badgeTotal}</span>
+        ${hasAct ? '<span style="font-size:11px;background:#EAF3DE;color:#3B6D11;padding:2px 8px;border-radius:100px;font-weight:600;">Закрыт</span>' : ''}
         <span id="chev-${pi}" style="color:var(--muted);font-size:11px;transition:transform .2s;">▼</span>
       </div>
-      <div id="phase-rows-${pi}" style="display:none;">${sections}${extraBlock}</div>
+      <div id="phase-rows-${pi}" style="display:none;">${sections}${extraBlock}${actBlock}</div>
     </div>`;
   }).join('');
-
-  if (data.extra_total > 0) {
-    const extraSummary = document.createElement('div');
-    extraSummary.style.cssText = 'margin-top:8px;padding:12px 16px;background:var(--accent-light);border-radius:12px;display:flex;justify-content:space-between;font-size:13px;';
-    extraSummary.innerHTML = `<span style="color:var(--accent);font-weight:600;">Итого доп. работы</span><span style="color:var(--accent);font-weight:700;">${fmtRub(data.extra_total)}</span>`;
-    container.appendChild(extraSummary);
-  }
 }
 
   function togglePhase(i) {
