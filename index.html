@@ -1346,7 +1346,8 @@ const title = escapeHtml(f.name || 'Чек');
 
   async function loadEstimate(csvUrl) {
     try {
-      const res = await fetch(csvUrl);
+     const sheetId = csvUrl.match(/spreadsheets\/d\/([^/]+)/)?.[1] || csvUrl;
+     const res = await fetch(`https://assistcloudai.xyz/webhook/estimate?sheet_id=${sheetId}`);
       const text = await res.text();
       const parsed = parseEstimateCSV(text);
       renderEstimate(parsed);
