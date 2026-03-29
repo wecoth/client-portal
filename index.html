@@ -1365,7 +1365,7 @@ const title = escapeHtml(f.name || 'Чек');
         </div>
         ${extraItems.length > 0 ? `<div style="display:flex;justify-content:space-between;font-size:13px;">
           <span style="color:var(--accent);">+ Доп. работы</span>
-          <span style="font-weight:600;color:var(--accent);">${fmtRub(data.extra_total)}</span>
+         <span style="font-weight:600;color:var(--accent);">${fmtRub(extraItems.reduce((s,i) => s + (i.price_total||0), 0))}</span>
         </div>` : ''}
         <div style="display:flex;justify-content:space-between;font-size:14px;font-weight:700;padding-top:8px;border-top:1px solid var(--border);">
           <span style="color:var(--ink);">Итого к оплате</span>
