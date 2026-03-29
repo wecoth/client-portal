@@ -633,7 +633,18 @@
   </div><!-- /tab-content-main -->
 
 <div id="tab-content-estimate" style="display:none;padding:16px 16px 70px;">
-  <!-- смета будет здесь, добавим на следующем шаге -->
+
+  <div id="est-loading" style="text-align:center;padding:40px 0;color:var(--muted);font-size:14px;">Загружаем смету...</div>
+  <div id="est-error" style="display:none;text-align:center;padding:40px 0;color:var(--muted);font-size:14px;">Смета не найдена</div>
+
+  <div id="est-content" style="display:none;">
+    <div style="background:var(--ink);color:#F5F2EE;border-radius:16px;padding:20px;margin-bottom:12px;">
+      <div style="font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:#9b948e;margin-bottom:4px;">Итого по смете</div>
+      <div id="est-grand-total" style="font-size:28px;font-weight:700;letter-spacing:-.02em;">—</div>
+    </div>
+    <div id="est-phases"></div>
+  </div>
+
 </div>
 
 </div>
@@ -1146,6 +1157,13 @@ const title = escapeHtml(f.name || 'Чек');
     window._portalToken = token;
     window._portalName = data.name;
 
+    if (data.estimate_url) {
+      window._loadEstimate(data.estimate_url);
+    } else {
+      document.getElementById('est-loading').style.display = 'none';
+      document.getElementById('est-error').style.display = 'block';
+    }
+
     const linkEl = document.getElementById('manager-link');
     if (linkEl && data.contact_link) linkEl.href = data.contact_link;
 
@@ -1186,6 +1204,160 @@ const title = escapeHtml(f.name || 'Чек');
 
   init();
 
+
+  function switchTab(tab) {
+    document.getElementById('tab-content-main').style.display = tab === 'main' ? 'block' : 'none';
+    document.getElementById('tab-content-estimate').style.display = tab === 'estimate' ? 'block' : 'none';
+    document.getElementById('tab-main').style.color = tab === 'main' ? 'var(--accent)' : 'var(--muted)';
+    document.getElementById('tab-estimate').style.color = tab === 'estimate' ? 'var(--accent)' : 'var(--muted)';
+  }
+
+  function fmtRub(n) {
+    const num = typeof n === 'string' ? parseFloat(n.replace(/[^\d.]/g,'')) : Number(n);
+    if (!num || isNaN(num)) return '—';
+    return num.toLocaleString('ru-RU', {minimumFractionDigits:0, maximumFractionDigits:0}) + ' ₽';
+  }
+
+  function parseEstimateCSV(csv) {
+    const lines = csv.split('\n').map(l => {
+      const cols = []; let cur = ''; let inQ = false;
+      for (let i = 0; i < l.length; i++) {
+        if (l[i] === '"') { inQ = !inQ; }
+        else if (l[i] === ',' && !inQ) { cols.push(cur.trim()); cur = ''; }
+        else { cur += l[i]; }
+      }
+      cols.push(cur.trim());
+      return cols;
+    });
+
+    const phases = [];
+    let curPhase = null, curSection = null, grandTotal = 0;
+
+    for (const c of lines) {
+      const col0 = String(c[0]||'').trim();
+      const col1 = String(c[1]||'').trim();
+      const col2 = String(c[2]||'').trim();
+      const col3 = String(c[3]||'').trim();
+      const col4 = String(c[4]||'').trim();
+      const col5 = String(c[5]||'').trim();
+
+      // Новый этап — "Этап №N" в col0
+      if (col0.startsWith('Этап №') || col0.startsWith('Этап №')) {
+        const etapNum = col0.replace('Этап №','').trim();
+        curPhase = { phase: 'Этап ' + etapNum, sections: [], phase_total: 0 };
+        phases.push(curPhase);
+        curSection = null;
+        continue;
+      }
+
+      // Заголовок раздела — col1 заканчивается на ":" нет цены
+      if (!col0 && col1 && col1.endsWith(':') && !col5) {
+        curSection = { title: col1.replace(/:$/, ''), items: [] };
+        if (curPhase) curPhase.sections.push(curSection);
+        continue;
+      }
+
+      // Итог этапа
+      if (col1.includes('Итоговая стоимость') && col5) {
+        const val = parseFloat(col5.replace(/[^\d.]/g,''));
+        if (curPhase && val) curPhase.phase_total = val;
+        continue;
+      }
+
+      // Гранд-итог
+      if (col1.includes('Итог:') && col2) {
+        grandTotal = parseFloat(col2.replace(/[^\d.]/g,'')) || grandTotal;
+        continue;
+      }
+      if (col1.includes('Общая стоимость') && col5) {
+        grandTotal = parseFloat(col5.replace(/[^\d.]/g,'')) || grandTotal;
+        continue;
+      }
+
+      // Позиция работы — есть название и цена
+      if (col1 && col5 && !col1.includes('Итого') && !col1.includes('стоимость') && !col1.includes('Этап')) {
+        const total = parseFloat(col5.replace(/[^\d.]/g,'')) || 0;
+        const unitP = parseFloat(col4.replace(/[^\d.]/g,'')) || 0;
+        if (!curSection) {
+          curSection = { title: '', items: [] };
+          if (curPhase) curPhase.sections.push(curSection);
+        }
+        curSection.items.push({
+          num: col0 || '',
+          name: col1,
+          unit: col2,
+          qty: parseFloat(col3) || 0,
+          price_unit: unitP,
+          price_total: total
+        });
+      }
+    }
+
+    // Считаем grandTotal если не нашли
+    if (!grandTotal) grandTotal = phases.reduce((s, p) => s + (p.phase_total || 0), 0);
+
+    return { phases, grand_total: grandTotal };
+  }
+
+  function renderEstimate(data) {
+    document.getElementById('est-loading').style.display = 'none';
+    if (!data || !data.phases || !data.phases.length) {
+      document.getElementById('est-error').style.display = 'block';
+      return;
+    }
+    document.getElementById('est-content').style.display = 'block';
+    document.getElementById('est-grand-total').textContent = fmtRub(data.grand_total);
+
+    const container = document.getElementById('est-phases');
+    container.innerHTML = data.phases.map((phase, pi) => {
+      const sections = phase.sections.map(sec => {
+        const rows = sec.items.map(item => `
+          <div style="display:grid;grid-template-columns:22px 1fr auto;gap:6px;padding:10px 14px;border-bottom:1px solid var(--border);font-size:13px;align-items:start;">
+            <div style="color:var(--muted);font-size:11px;padding-top:2px;">${escapeHtml(String(item.num))}</div>
+            <div>
+              <div style="color:var(--ink);line-height:1.35;">${escapeHtml(item.name)}</div>
+              <div style="font-size:11px;color:var(--ink-soft);margin-top:2px;">${escapeHtml(item.unit)} × ${item.qty} · ${fmtRub(item.price_unit)} за ед.</div>
+            </div>
+            <div style="font-weight:600;color:var(--ink);text-align:right;white-space:nowrap;">${fmtRub(item.price_total)}</div>
+          </div>`).join('');
+
+        const secTitle = sec.title ? `<div style="padding:8px 14px 4px;font-size:11px;font-weight:600;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.05em;border-top:1px solid var(--border);">${escapeHtml(sec.title)}</div>` : '';
+        return secTitle + rows;
+      }).join('');
+
+      return `<div style="border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:8px;">
+        <div onclick="togglePhase(${pi})" style="display:flex;align-items:center;gap:10px;padding:14px 16px;cursor:pointer;background:var(--surface);">
+          <span style="font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;background:var(--accent-light);color:var(--accent);padding:4px 10px;border-radius:100px;flex-shrink:0;">${escapeHtml(phase.phase)}</span>
+          <span style="flex:1;font-size:13px;font-weight:600;color:var(--ink);">${fmtRub(phase.phase_total)}</span>
+          <span id="chev-${pi}" style="color:var(--muted);font-size:11px;transition:transform .2s;">▼</span>
+        </div>
+        <div id="phase-rows-${pi}" style="display:none;">${sections}</div>
+      </div>`;
+    }).join('');
+  }
+
+  function togglePhase(i) {
+    const rows = document.getElementById('phase-rows-' + i);
+    const chev = document.getElementById('chev-' + i);
+    const open = rows.style.display !== 'none';
+    rows.style.display = open ? 'none' : 'block';
+    chev.style.transform = open ? '' : 'rotate(180deg)';
+  }
+
+  async function loadEstimate(csvUrl) {
+    try {
+      const res = await fetch(csvUrl);
+      const text = await res.text();
+      const parsed = parseEstimateCSV(text);
+      renderEstimate(parsed);
+    } catch(e) {
+      document.getElementById('est-loading').style.display = 'none';
+      document.getElementById('est-error').style.display = 'block';
+    }
+  }
+
+  window._loadEstimate = loadEstimate;
+
   async function confirmPayment() {
     const amount = document.getElementById('payment-amount')?.value;
     if (!amount || isNaN(amount) || Number(amount) <= 0) {
@@ -1223,8 +1395,7 @@ const title = escapeHtml(f.name || 'Чек');
   }
 </script>
 
-</body>
-  <nav style="position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);display:flex;z-index:100;padding-bottom:env(safe-area-inset-bottom,0px);">
+<nav style="position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);display:flex;z-index:100;padding-bottom:env(safe-area-inset-bottom,0px);">
   <button onclick="switchTab('main')" id="tab-main" style="flex:1;padding:12px 0;border:none;background:none;font-family:'Manrope',sans-serif;font-size:12px;font-weight:600;color:var(--accent);display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;">
     <span style="font-size:20px;">🏠</span>Объект
   </button>
@@ -1232,4 +1403,6 @@ const title = escapeHtml(f.name || 'Чек');
     <span style="font-size:20px;">📋</span>Смета
   </button>
 </nav>
+
+</body>
 </html>
