@@ -1377,7 +1377,7 @@ const title = escapeHtml(f.name || 'Чек');
           <span style="color:var(--ink);">${fmtRub(phase.act_final)}</span>
         </div>
         <div style="display:flex;justify-content:space-between;font-size:13px;">
-          <span style="color:var(--ink-soft);">Аванс (60%)</span>
+          <span style="color:var(--ink-soft);">Аванс (${Math.round((phase.act_advance / phase.phase_total) * 100)}%)</span>
           <span style="color:var(--ink-soft);">−${fmtRub(phase.act_advance)}</span>
         </div>
         <div style="display:flex;justify-content:space-between;font-size:15px;font-weight:700;padding-top:8px;border-top:1px solid var(--border);">
