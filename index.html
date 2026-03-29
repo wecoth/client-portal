@@ -560,19 +560,14 @@
     </div>
   </div>
 
- <!-- FINANCES & PAYMENT -->
+<!-- FINANCES & PAYMENT -->
 <div class="section">
   <div class="section-title">Оплата</div>
-  <div class="finance-hero">
-    <div class="finance-card accent">
-      <div class="finance-card-label">Внесено</div>
-      <div class="finance-card-amount" id="total-income">—</div>
-    </div>
-    <div class="finance-card">
-      <div class="finance-card-label">Баланс</div>
-      <div class="finance-card-amount" id="balance">—</div>
-    </div>
+  <div class="finance-card accent" style="margin-bottom:16px;">
+    <div class="finance-card-label">Внесено</div>
+    <div class="finance-card-amount" id="total-income">—</div>
   </div>
+  <div id="balance" style="display:none;"></div>
   <div class="transactions" id="transactions">
     <div class="empty">Загрузка...</div>
   </div>
@@ -582,6 +577,7 @@
     </a>
   </div>
 </div>
+  
   <!-- PHOTOS -->
   <div class="section" id="photos-section" style="display:none">
   <div class="section-title photos-title">
