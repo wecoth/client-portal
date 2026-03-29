@@ -1323,8 +1323,8 @@ const title = escapeHtml(f.name || 'Чек');
         const diffText = hasActData && diff !== 0 ? `<span style="color:${diffColor};font-size:11px;font-weight:600;margin-left:4px;">${diffSign}${diffAbs}</span>` : '';
 
         const qtyDisplay = hasActData
-          ? `<span style="color:var(--ink-soft);text-decoration:line-through;font-size:11px;">${item.qty}</span> → <span style="color:${diffColor};font-weight:600;">${item.act_qty}</span>
-          : `${item.qty}`;
+  ? `<span style="color:var(--ink-soft);text-decoration:line-through;font-size:11px;">${+Number(item.qty).toFixed(2)}</span> → <span style="color:${diffColor};font-weight:600;">${+Number(item.act_qty).toFixed(2)}</span>${diffText}`
+  : `${item.qty}`;
 
         const priceDisplay = hasActData
           ? `<div style="font-weight:600;color:var(--ink);text-align:right;white-space:nowrap;">${fmtRub(item.act_total)}</div>
