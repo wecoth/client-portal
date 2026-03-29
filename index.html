@@ -1149,7 +1149,7 @@ const title = escapeHtml(f.name || 'Чек');
     const linkEl = document.getElementById('manager-link');
     if (linkEl && data.contact_link) linkEl.href = data.contact_link;
 
-    document.getElementById('last-update').textContent = 'Данные обновляются в реальном времени';
+    document.getElementById('last-update').textContent = 'Данные не обновляются автоматически, обновите страницу самостоятельно';
   }
 
   async function init() {
