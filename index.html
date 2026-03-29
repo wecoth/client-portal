@@ -1347,14 +1347,13 @@ const title = escapeHtml(f.name || 'Чек');
   async function loadEstimate(folderDocs) {
   try {
     const res = await fetch(`https://assistcloudai.xyz/webhook/estimate?folder_docs=${folderDocs}`);
-      const text = await res.text();
-      const parsed = parseEstimateCSV(text);
-      renderEstimate(parsed);
-    } catch(e) {
-      document.getElementById('est-loading').style.display = 'none';
-      document.getElementById('est-error').style.display = 'block';
-    }
+    const data = await res.json();
+    renderEstimate(data);
+  } catch(e) {
+    document.getElementById('est-loading').style.display = 'none';
+    document.getElementById('est-error').style.display = 'block';
   }
+}
 
   window._loadEstimate = loadEstimate;
 
