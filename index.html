@@ -1300,41 +1300,68 @@ const title = escapeHtml(f.name || 'Чек');
   }
 
   function renderEstimate(data) {
-    document.getElementById('est-loading').style.display = 'none';
-    if (!data || !data.phases || !data.phases.length) {
-      document.getElementById('est-error').style.display = 'block';
-      return;
-    }
-    document.getElementById('est-content').style.display = 'block';
-    document.getElementById('est-grand-total').textContent = fmtRub(data.grand_total);
+  document.getElementById('est-loading').style.display = 'none';
+  if (!data || !data.phases || !data.phases.length) {
+    document.getElementById('est-error').style.display = 'block';
+    return;
+  }
+  document.getElementById('est-content').style.display = 'block';
+  document.getElementById('est-grand-total').textContent = fmtRub(data.grand_total);
 
-    const container = document.getElementById('est-phases');
-    container.innerHTML = data.phases.map((phase, pi) => {
-      const sections = phase.sections.map(sec => {
-        const rows = sec.items.map(item => `
-          <div style="display:grid;grid-template-columns:22px 1fr auto;gap:6px;padding:10px 14px;border-bottom:1px solid var(--border);font-size:13px;align-items:start;">
-            <div style="color:var(--muted);font-size:11px;padding-top:2px;">${escapeHtml(String(item.num))}</div>
+  const container = document.getElementById('est-phases');
+  container.innerHTML = data.phases.map((phase, pi) => {
+    const sections = phase.sections.map(sec => {
+      const rows = sec.items.map(item => `
+        <div style="display:grid;grid-template-columns:22px 1fr auto;gap:6px;padding:10px 14px;border-bottom:1px solid var(--border);font-size:13px;align-items:start;">
+          <div style="color:var(--muted);font-size:11px;padding-top:2px;">${escapeHtml(String(item.num))}</div>
+          <div>
+            <div style="color:var(--ink);line-height:1.35;">${escapeHtml(item.name)}</div>
+            <div style="font-size:11px;color:var(--ink-soft);margin-top:2px;">${escapeHtml(item.unit)} × ${item.qty} · ${fmtRub(item.price_unit)} за ед.</div>
+          </div>
+          <div style="font-weight:600;color:var(--ink);text-align:right;white-space:nowrap;">${fmtRub(item.price_total)}</div>
+        </div>`).join('');
+      const secTitle = sec.title ? `<div style="padding:8px 14px 4px;font-size:11px;font-weight:600;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.05em;border-top:1px solid var(--border);">${escapeHtml(sec.title)}</div>` : '';
+      return secTitle + rows;
+    }).join('');
+
+    const extraItems = (phase.extra_items || []);
+    const extraBlock = extraItems.length > 0 ? `
+      <div style="border-top:2px solid var(--accent-light);">
+        <div style="padding:8px 14px 4px;font-size:11px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.05em;">
+          + Доп. работы
+        </div>
+        ${extraItems.map(item => `
+          <div style="display:grid;grid-template-columns:1fr auto;gap:6px;padding:10px 14px;border-bottom:1px solid var(--border);font-size:13px;align-items:start;">
             <div>
               <div style="color:var(--ink);line-height:1.35;">${escapeHtml(item.name)}</div>
               <div style="font-size:11px;color:var(--ink-soft);margin-top:2px;">${escapeHtml(item.unit)} × ${item.qty} · ${fmtRub(item.price_unit)} за ед.</div>
             </div>
-            <div style="font-weight:600;color:var(--ink);text-align:right;white-space:nowrap;">${fmtRub(item.price_total)}</div>
-          </div>`).join('');
+            <div style="font-weight:600;color:var(--accent);text-align:right;white-space:nowrap;">${fmtRub(item.price_total)}</div>
+          </div>`).join('')}
+      </div>` : '';
 
-        const secTitle = sec.title ? `<div style="padding:8px 14px 4px;font-size:11px;font-weight:600;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.05em;border-top:1px solid var(--border);">${escapeHtml(sec.title)}</div>` : '';
-        return secTitle + rows;
-      }).join('');
+    const extraTotal = extraItems.reduce((s, i) => s + (i.price_total || 0), 0);
+    const totalLabel = extraTotal > 0
+      ? `${fmtRub(phase.phase_total)} <span style="font-size:11px;color:var(--accent);font-weight:500;">+${fmtRub(extraTotal)} доп.</span>`
+      : fmtRub(phase.phase_total);
 
-      return `<div style="border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:8px;">
-        <div onclick="togglePhase(${pi})" style="display:flex;align-items:center;gap:10px;padding:14px 16px;cursor:pointer;background:var(--surface);">
-          <span style="font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;background:var(--accent-light);color:var(--accent);padding:4px 10px;border-radius:100px;flex-shrink:0;">${escapeHtml(phase.phase)}</span>
-          <span style="flex:1;font-size:13px;font-weight:600;color:var(--ink);">${fmtRub(phase.phase_total)}</span>
-          <span id="chev-${pi}" style="color:var(--muted);font-size:11px;transition:transform .2s;">▼</span>
-        </div>
-        <div id="phase-rows-${pi}" style="display:none;">${sections}</div>
-      </div>`;
-    }).join('');
+    return `<div style="border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:8px;">
+      <div onclick="togglePhase(${pi})" style="display:flex;align-items:center;gap:10px;padding:14px 16px;cursor:pointer;background:var(--surface);">
+        <span style="font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;background:var(--accent-light);color:var(--accent);padding:4px 10px;border-radius:100px;flex-shrink:0;">${escapeHtml(phase.phase)}</span>
+        <span style="flex:1;font-size:13px;font-weight:600;color:var(--ink);">${totalLabel}</span>
+        <span id="chev-${pi}" style="color:var(--muted);font-size:11px;transition:transform .2s;">▼</span>
+      </div>
+      <div id="phase-rows-${pi}" style="display:none;">${sections}${extraBlock}</div>
+    </div>`;
+  }).join('');
+
+  if (data.extra_total > 0) {
+    const extraSummary = document.createElement('div');
+    extraSummary.style.cssText = 'margin-top:8px;padding:12px 16px;background:var(--accent-light);border-radius:12px;display:flex;justify-content:space-between;font-size:13px;';
+    extraSummary.innerHTML = `<span style="color:var(--accent);font-weight:600;">Итого доп. работы</span><span style="color:var(--accent);font-weight:700;">${fmtRub(data.extra_total)}</span>`;
+    container.appendChild(extraSummary);
   }
+}
 
   function togglePhase(i) {
     const rows = document.getElementById('phase-rows-' + i);
