@@ -1158,7 +1158,7 @@ const title = escapeHtml(f.name || 'Чек');
     window._portalName = data.name;
 
     if (data.folder_docs) {
-  window._loadEstimate(data.folder_docs);
+  window._loadEstimate(data.folder_docs, data.advance_pct);
 } else {
       document.getElementById('est-loading').style.display = 'none';
       document.getElementById('est-error').style.display = 'block';
@@ -1409,9 +1409,9 @@ const title = escapeHtml(f.name || 'Чек');
     chev.style.transform = open ? '' : 'rotate(180deg)';
   }
 
-  async function loadEstimate(folderDocs) {
+  async function loadEstimate(folderDocs, advancePct) {
   try {
-    const res = await fetch(`https://assistcloudai.xyz/webhook/estimate?folder_docs=${folderDocs}`);
+    const res = await fetch(`https://assistcloudai.xyz/webhook/estimate?folder_docs=${folderDocs}&advance_pct=${advancePct}`);
     const data = await res.json();
     renderEstimate(data);
   } catch(e) {
