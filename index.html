@@ -627,6 +627,33 @@
 
   </div><!-- /tab-content-main -->
 
+<!-- КНОПКА ПОДПИСИ (фиксированная, только на вкладке Смета) -->
+<div id="sign-bar" style="display:none;position:fixed;bottom:70px;left:0;right:0;padding:12px 16px;background:var(--bg);border-top:1px solid var(--border);z-index:100;">
+  <button onclick="openSignModal()" style="width:100%;padding:14px;background:var(--accent);color:#fff;border:none;border-radius:12px;font-family:'Manrope',sans-serif;font-size:15px;font-weight:700;cursor:pointer;">
+    ✍️ Подписать акт
+  </button>
+</div>
+
+<!-- МОДАЛЬНОЕ ОКНО ПОДПИСИ -->
+<div id="sign-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:flex-end;">
+  <div style="background:var(--surface);border-radius:20px 20px 0 0;padding:24px 20px 40px;width:100%;">
+    <div style="font-size:17px;font-weight:700;color:var(--ink);margin-bottom:6px;">Подписание акта</div>
+    <div id="sign-phase-label" style="font-size:13px;color:var(--ink-soft);margin-bottom:20px;"></div>
+    <div style="font-size:13px;color:var(--ink-soft);margin-bottom:8px;">Введите номер телефона как в договоре</div>
+    <input id="sign-phone" type="tel" placeholder="+7 (___) ___-__-__"
+      style="width:100%;padding:13px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:'Manrope',sans-serif;font-size:15px;margin-bottom:16px;outline:none;background:var(--bg);">
+    <div style="font-size:12px;color:var(--muted);margin-bottom:20px;line-height:1.5;">
+      Нажимая «Подтвердить», вы подтверждаете приёмку работ по данному акту. Факт подписания фиксируется с датой и вашими данными.
+    </div>
+    <button onclick="submitSign()" style="width:100%;padding:14px;background:var(--accent);color:#fff;border:none;border-radius:12px;font-family:'Manrope',sans-serif;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:10px;">
+      Подтвердить
+    </button>
+    <button onclick="closeSignModal()" style="width:100%;padding:12px;background:none;color:var(--ink-soft);border:none;font-family:'Manrope',sans-serif;font-size:14px;cursor:pointer;">
+      Отмена
+    </button>
+  </div>
+</div>
+
 <div id="tab-content-estimate" style="display:none;padding:100px 16px 70px;">
   
   <div id="est-loading" style="text-align:center;padding:40px 0;color:var(--muted);font-size:14px;">Загружаем смету...</div>
@@ -1153,6 +1180,7 @@ const title = escapeHtml(f.name || 'Чек');
     window._portalName = data.name;
 
     if (data.folder_docs) {
+  window._folderDocs = data.folder_docs;
   window._loadEstimate(data.folder_docs, data.advance_pct);
 } else {
       document.getElementById('est-loading').style.display = 'none';
@@ -1205,6 +1233,8 @@ const title = escapeHtml(f.name || 'Чек');
     document.getElementById('tab-content-estimate').style.display = tab === 'estimate' ? 'block' : 'none';
     document.getElementById('tab-main').style.color = tab === 'main' ? 'var(--accent)' : 'var(--muted)';
     document.getElementById('tab-estimate').style.color = tab === 'estimate' ? 'var(--accent)' : 'var(--muted)';
+    if (tab === 'estimate') checkSignBar();
+    else document.getElementById('sign-bar').style.display = 'none';
   }
 
   function fmtRub(n) {
@@ -1421,6 +1451,80 @@ return `<div style="display:grid;grid-template-columns:22px 1fr auto;gap:6px;pad
 }
 
   window._loadEstimate = loadEstimate;
+
+  // ===== ПОДПИСЬ АКТА =====
+  let _signPhaseIndex = null;
+  let _estimateData = null;
+
+  const _origRenderEstimate = renderEstimate;
+  function renderEstimate(data) {
+    _estimateData = data;
+    _origRenderEstimate(data);
+    checkSignBar();
+  }
+
+  function checkSignBar() {
+    const bar = document.getElementById('sign-bar');
+    if (!_estimateData || !_estimateData.phases) { bar.style.display = 'none'; return; }
+    const idx = _estimateData.phases.findIndex(p => p.act_total > 0 && !p.signed);
+    if (idx >= 0) {
+      _signPhaseIndex = idx;
+      bar.style.display = 'block';
+    } else {
+      bar.style.display = 'none';
+    }
+  }
+
+  function openSignModal() {
+    if (_signPhaseIndex === null || !_estimateData) return;
+    const phase = _estimateData.phases[_signPhaseIndex];
+    document.getElementById('sign-phase-label').textContent = phase.phase + ' · ' + fmtRub(phase.act_final);
+    document.getElementById('sign-phone').value = '';
+    const modal = document.getElementById('sign-modal');
+    modal.style.display = 'flex';
+    document.body.classList.add('modal-open');
+  }
+
+  function closeSignModal() {
+    document.getElementById('sign-modal').style.display = 'none';
+    document.body.classList.remove('modal-open');
+  }
+
+  async function submitSign() {
+    const phone = document.getElementById('sign-phone').value.trim();
+    if (!phone || phone.replace(/\D/g,'').length < 10) {
+      alert('Введите корректный номер телефона');
+      return;
+    }
+    const phase = _estimateData.phases[_signPhaseIndex];
+    const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
+    const payload = {
+      phase: phase.phase,
+      act_final: phase.act_final,
+      phone,
+      telegram_id: tgUser?.id || null,
+      telegram_name: tgUser?.first_name || null,
+      signed_at: new Date().toISOString(),
+      folder_docs: window._folderDocs || null
+    };
+    try {
+      const res = await fetch('https://assistcloudai.xyz/webhook/sign-act', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        phase.signed = true;
+        closeSignModal();
+        document.getElementById('sign-bar').style.display = 'none';
+        alert('\u2705 Акт подписан. Подтверждение отправлено в Telegram.');
+      } else {
+        alert('Ошибка. Попробуйте ещё раз.');
+      }
+    } catch(e) {
+      alert('Ошибка соединения. Попробуйте ещё раз.');
+    }
+  }
 
   async function confirmPayment() {
     const amount = document.getElementById('payment-amount')?.value;
