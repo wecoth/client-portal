@@ -1328,15 +1328,14 @@ const title = escapeHtml(f.name || 'Чек');
       : `<div style="font-weight:600;color:var(--ink);text-align:right;white-space:nowrap;">${fmtRub(item.act_total)}</div>
          <div style="font-size:11px;color:var(--muted);text-align:right;text-decoration:line-through;">${fmtRub(item.price_total)}</div>`)
   : `<div style="font-weight:600;color:var(--ink);text-align:right;white-space:nowrap;">${fmtRub(item.price_total)}</div>`;
-        const rowStyle = !hasActData
+        const rowStyle = hasAct && !hasActData
   ? `opacity:0.4;`
   : ``;
 return `<div style="display:grid;grid-template-columns:22px 1fr auto;gap:6px;padding:10px 14px;border-bottom:1px solid var(--border);font-size:13px;align-items:start;${rowStyle}">
           <div style="color:var(--muted);font-size:11px;padding-top:2px;">${escapeHtml(String(item.num))}</div>
           <div>
-            <div style="color:var(--ink);line-height:1.35;${!hasActData ? 'text-decoration:line-through;' : ''}">
+            <div style="color:var(--ink);line-height:1.35;${hasAct && !hasActData ? 'text-decoration:line-through;' : ''}">${escapeHtml(item.name)}</div>
             <div style="font-size:11px;color:var(--ink-soft);margin-top:2px;">${qtyDisplay} ${escapeHtml(item.unit)} × ${fmtRub(item.price_unit)}</div>
-          </div>
           <div>${priceDisplay}</div>
         </div>`;
       }).join('');
