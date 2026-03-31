@@ -1313,7 +1313,7 @@ const title = escapeHtml(f.name || 'Чек');
         const hasActData = item.act_qty !== undefined;
         const diff = item.qty_diff || 0;
         const diffAbs = Math.abs(diff).toFixed(2).replace(/\.?0+$/, '');
-        const diffColor = diff > 0.01 ? '#C4602A' : diff < -0.01 ? '#4A7C59' : 'var(--muted)';
+        const diffColor = diff > 0.01 ? '#D32F2F' : diff < -0.01 ? '#4A7C59' : 'var(--muted)';
         const diffSign = diff > 0.01 ? '▲ +' : diff < -0.01 ? '▼ −' : '';
         const diffText = hasActData && diff !== 0 ? `<span style="color:${diffColor};font-size:11px;font-weight:600;margin-left:4px;">${diffSign}${diffAbs}</span>` : '';
         const qtyDisplay = hasActData
