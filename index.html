@@ -1318,7 +1318,9 @@ const title = escapeHtml(f.name || 'Чек');
         const diffText = hasActData && diff !== 0 ? `<span style="color:${diffColor};font-size:11px;font-weight:600;margin-left:4px;">${diffSign}${diffAbs}</span>` : '';
 
         const qtyDisplay = hasActData
-  ? `<span style="color:var(--ink-soft);text-decoration:line-through;font-size:11px;">${+Number(item.qty).toFixed(2)}</span> → <span style="color:${diffColor};font-weight:600;">${+Number(item.act_qty).toFixed(2)}</span>${diffText}`
+  ? (diff === 0
+      ? `<span style="font-weight:600;">${+Number(item.act_qty).toFixed(2)}</span>`
+      : `<span style="color:var(--ink-soft);text-decoration:line-through;font-size:11px;">${+Number(item.qty).toFixed(2)}</span> → <span style="color:${diffColor};font-weight:600;">${+Number(item.act_qty).toFixed(2)}</span>${diffText}`)
   : `${item.qty}`;
 
         const priceDisplay = hasActData
@@ -1326,10 +1328,13 @@ const title = escapeHtml(f.name || 'Чек');
              <div style="font-size:11px;color:var(--muted);text-align:right;text-decoration:line-through;">${fmtRub(item.price_total)}</div>`
           : `<div style="font-weight:600;color:var(--ink);text-align:right;white-space:nowrap;">${fmtRub(item.price_total)}</div>`;
 
-        return `<div style="display:grid;grid-template-columns:22px 1fr auto;gap:6px;padding:10px 14px;border-bottom:1px solid var(--border);font-size:13px;align-items:start;">
+        const rowStyle = !hasActData
+  ? `opacity:0.4;`
+  : ``;
+return `<div style="display:grid;grid-template-columns:22px 1fr auto;gap:6px;padding:10px 14px;border-bottom:1px solid var(--border);font-size:13px;align-items:start;${rowStyle}">
           <div style="color:var(--muted);font-size:11px;padding-top:2px;">${escapeHtml(String(item.num))}</div>
           <div>
-            <div style="color:var(--ink);line-height:1.35;">${escapeHtml(item.name)}</div>
+            <div style="color:var(--ink);line-height:1.35;${!hasActData ? 'text-decoration:line-through;' : ''}">${escapeHtml(item.name)}</div>
             <div style="font-size:11px;color:var(--ink-soft);margin-top:2px;">${escapeHtml(item.unit)} × ${qtyDisplay} · ${fmtRub(item.price_unit)} за ед.</div>
           </div>
           <div>${priceDisplay}</div>
@@ -1346,7 +1351,7 @@ const title = escapeHtml(f.name || 'Чек');
         ${extraItems.map(item => `
           <div style="display:grid;grid-template-columns:1fr auto;gap:6px;padding:10px 14px;border-bottom:1px solid var(--border);font-size:13px;align-items:start;">
             <div>
-              <div style="color:var(--ink);line-height:1.35;">${escapeHtml(item.name)}</div>
+              <div style="color:var(--ink);line-height:1.35;${!hasActData ? 'text-decoration:line-through;' : ''}">${escapeHtml(item.name)}</div>
               <div style="font-size:11px;color:var(--ink-soft);margin-top:2px;">${escapeHtml(item.unit)} × ${item.qty} · ${fmtRub(item.price_unit)} за ед.</div>
             </div>
             <div style="font-weight:600;color:var(--accent);text-align:right;white-space:nowrap;">${fmtRub(item.price_total)}</div>
