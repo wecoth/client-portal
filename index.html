@@ -1412,7 +1412,7 @@ return `<div style="display:grid;grid-template-columns:22px 1fr auto;gap:6px;pad
 
   async function loadEstimate(folderDocs, advancePct) {
   try {
-    const res = await fetch(`https://assistcloudai.xyz/webhook/estimate?folder_docs=${folderDocs}&advance_pct=${advancePct}`);
+    const res = await fetch(`https://assistcloudai.xyz/webhook/estimate?folder_docs=${folderDocs}&advance_pct=${advancePct}&_=${Date.now()}`);
     const data = await res.json();
     renderEstimate(data);
   } catch(e) {
