@@ -1352,7 +1352,7 @@ return `<div style="display:grid;grid-template-columns:22px 1fr auto;gap:6px;pad
           <div style="display:grid;grid-template-columns:1fr auto;gap:6px;padding:10px 14px;border-bottom:1px solid var(--border);font-size:13px;align-items:start;">
             <div>
               <div style="color:var(--ink);line-height:1.35;">${escapeHtml(item.name)}</div>
-              <div style="font-size:11px;color:var(--ink-soft);margin-top:2px;">${escapeHtml(item.unit)} × ${item.qty} · ${fmtRub(item.price_unit)} за ед.</div>
+              <div style="font-size:11px;color:var(--ink-soft);margin-top:2px;">${item.qty} ${escapeHtml(item.unit)} × ${fmtRub(item.price_unit)}</div>
             </div>
             <div style="font-weight:600;color:var(--accent);text-align:right;white-space:nowrap;">${fmtRub(item.price_total)}</div>
           </div>`).join('')}
