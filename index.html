@@ -1336,6 +1336,7 @@ return `<div style="display:grid;grid-template-columns:22px 1fr auto;gap:6px;pad
           <div>
             <div style="color:var(--ink);line-height:1.35;${hasAct && !hasActData ? 'text-decoration:line-through;' : ''}">${escapeHtml(item.name)}</div>
             <div style="font-size:11px;color:var(--ink-soft);margin-top:2px;">${qtyDisplay} ${escapeHtml(item.unit)} × ${fmtRub(item.price_unit)}</div>
+          </div>
           <div>${priceDisplay}</div>
         </div>`;
       }).join('');
