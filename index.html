@@ -1443,7 +1443,9 @@ return `<div style="display:grid;grid-template-columns:22px 1fr auto;gap:6px;pad
   try {
     const res = await fetch(`https://assistcloudai.xyz/webhook/estimate?folder_docs=${folderDocs}&advance_pct=${advancePct}&_=${Date.now()}`);
     const data = await res.json();
+    _estimateData = data;
     renderEstimate(data);
+    checkSignBar();
   } catch(e) {
     document.getElementById('est-loading').style.display = 'none';
     document.getElementById('est-error').style.display = 'block';
@@ -1455,13 +1457,6 @@ return `<div style="display:grid;grid-template-columns:22px 1fr auto;gap:6px;pad
   // ===== ПОДПИСЬ АКТА =====
   let _signPhaseIndex = null;
   let _estimateData = null;
-
-  const _origRenderEstimate = renderEstimate;
-  function renderEstimate(data) {
-    _estimateData = data;
-    _origRenderEstimate(data);
-    checkSignBar();
-  }
 
   function checkSignBar() {
     const bar = document.getElementById('sign-bar');
