@@ -1423,7 +1423,7 @@ return `<div style="display:grid;grid-template-columns:22px 1fr auto;gap:6px;pad
       <div onclick="togglePhase(${pi})" style="display:flex;align-items:center;gap:10px;padding:14px 16px;cursor:pointer;background:var(--surface);">
         <span style="font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;background:var(--accent-light);color:var(--accent);padding:4px 10px;border-radius:100px;flex-shrink:0;">${escapeHtml(phase.phase)}</span>
         <span style="flex:1;font-size:13px;font-weight:600;color:var(--ink);">${badgeTotal}</span>
-        ${hasAct ? '<span style="font-size:11px;background:#EAF3DE;color:#3B6D11;padding:2px 8px;border-radius:100px;font-weight:600;">Закрыт</span>' : ''}
+        ${phase.signed ? '<span style="font-size:11px;background:#EAF3DE;color:#3B6D11;padding:2px 8px;border-radius:100px;font-weight:600;">Закрыт</span>' : hasAct ? '<span style="font-size:11px;background:#FFF3E0;color:#E65100;padding:2px 8px;border-radius:100px;font-weight:600;">На подписании</span>' : ''}
         <span id="chev-${pi}" style="color:var(--muted);font-size:11px;transition:transform .2s;">▼</span>
       </div>
       <div id="phase-rows-${pi}" style="display:none;">${sections}${extraBlock}${actBlock}</div>
