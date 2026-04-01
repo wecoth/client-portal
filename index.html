@@ -569,7 +569,6 @@
 <div id="action-alert-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:300;align-items:center;justify-content:center;padding:32px;">
   <div style="background:#F5F2EE;border-radius:20px;width:100%;max-width:320px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
     <div style="padding:24px 20px 16px;text-align:center;">
-      <div style="font-size:28px;margin-bottom:10px;">✍️</div>
       <div style="font-size:17px;font-weight:700;color:var(--ink);margin-bottom:6px;" id="alert-title">Этап №2</div>
       <div style="font-size:14px;color:var(--ink-soft);line-height:1.5;">Акт выполненных работ ожидает вашего подписания</div>
     </div>
@@ -1493,15 +1492,18 @@ return `<div style="display:grid;grid-template-columns:22px 1fr auto;gap:6px;pad
     updateActionBanner();
   }
 
+  let _alertShown = false;
+
   function updateActionBanner() {
     const overlay = document.getElementById('action-alert-overlay');
     if (!overlay) return;
-    if (_signPhaseIndex !== null) {
+    if (_signPhaseIndex !== null && !_alertShown) {
       const phase = _estimateData.phases[_signPhaseIndex];
       document.getElementById('alert-title').textContent = phase.phase;
       overlay.style.display = 'flex';
       document.body.classList.add('modal-open');
-    } else {
+      _alertShown = true;
+    } else if (_signPhaseIndex === null) {
       overlay.style.display = 'none';
       document.body.classList.remove('modal-open');
     }
@@ -1523,7 +1525,7 @@ return `<div style="display:grid;grid-template-columns:22px 1fr auto;gap:6px;pad
     const btn = document.getElementById('main-action-btn');
     if (!btn) return;
     if (_signPhaseIndex !== null) {
-      btn.textContent = '✍️ Подписать акт';
+      btn.textContent = 'Подписать акт';
       btn.onclick = openSignModal;
       document.getElementById('estimate-dot').style.display = 'inline-block';
     } else {
