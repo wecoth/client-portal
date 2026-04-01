@@ -645,8 +645,9 @@
     <div style="font-size:12px;color:var(--muted);margin-bottom:20px;line-height:1.5;">
       Нажимая «Подтвердить», вы подтверждаете приёмку работ по данному акту. Факт подписания фиксируется с датой и вашими данными.
     </div>
-    <button onclick="submitSign()" style="width:100%;padding:14px;background:var(--accent);color:#fff;border:none;border-radius:12px;font-family:'Manrope',sans-serif;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:10px;">
-      Подтвердить
+    <button id="sign-submit-btn" onclick="submitSign()" style="width:100%;padding:14px;background:var(--accent);color:#fff;border:none;border-radius:12px;font-family:'Manrope',sans-serif;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:10px;display:flex;align-items:center;justify-content:center;gap:8px;">
+      <span id="sign-submit-text">Подтвердить</span>
+      <span id="sign-submit-spinner" style="display:none;width:18px;height:18px;border:2px solid rgba(255,255,255,0.4);border-top-color:#fff;border-radius:50%;animation:spin 0.7s linear infinite;"></span>
     </button>
     <button onclick="closeSignModal()" style="width:100%;padding:12px;background:none;color:var(--ink-soft);border:none;font-family:'Manrope',sans-serif;font-size:14px;cursor:pointer;">
       Отмена
@@ -1491,6 +1492,13 @@ return `<div style="display:grid;grid-template-columns:22px 1fr auto;gap:6px;pad
       alert('Введите корректный номер телефона');
       return;
     }
+    // Показываем кружок
+    const btn = document.getElementById('sign-submit-btn');
+    const btnText = document.getElementById('sign-submit-text');
+    const spinner = document.getElementById('sign-submit-spinner');
+    btn.disabled = true;
+    btnText.textContent = 'Отправляем...';
+    spinner.style.display = 'inline-block';
     const phase = _estimateData.phases[_signPhaseIndex];
     const nextPhase = _estimateData.phases[_signPhaseIndex + 1];
     const advancePct = phase.act_advance / phase.phase_total;
@@ -1520,11 +1528,27 @@ return `<div style="display:grid;grid-template-columns:22px 1fr auto;gap:6px;pad
         phase.signed = true;
         closeSignModal();
         document.getElementById('sign-bar').style.display = 'none';
+        // Обновляем badge этапа без перезагрузки
+        const phaseEl = document.querySelector(`#phase-rows-${_signPhaseIndex}`)?.previousElementSibling;
+        if (phaseEl) {
+          const oldBadge = phaseEl.querySelector('span[style*="FFF3E0"], span[style*="EAF3DE"]');
+          if (oldBadge) {
+            oldBadge.style.background = '#EAF3DE';
+            oldBadge.style.color = '#3B6D11';
+            oldBadge.textContent = 'Закрыт';
+          }
+        }
         alert('\u2705 Акт подписан. Подтверждение отправлено в Telegram.');
       } else {
+        btn.disabled = false;
+        btnText.textContent = 'Подтвердить';
+        spinner.style.display = 'none';
         alert('Ошибка. Попробуйте ещё раз.');
       }
     } catch(e) {
+      btn.disabled = false;
+      btnText.textContent = 'Подтвердить';
+      spinner.style.display = 'none';
       alert('Ошибка соединения. Попробуйте ещё раз.');
     }
   }
