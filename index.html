@@ -615,11 +615,7 @@
   </div><!-- /tab-content-main -->
 
 <!-- КНОПКА ПОДПИСИ (фиксированная, только на вкладке Смета) -->
-<div id="sign-bar" style="display:none;position:fixed;bottom:70px;left:0;right:0;padding:12px 16px;background:var(--bg);border-top:1px solid var(--border);z-index:100;">
-  <button onclick="openSignModal()" style="width:100%;padding:14px;background:var(--accent);color:#fff;border:none;border-radius:12px;font-family:'Manrope',sans-serif;font-size:15px;font-weight:700;cursor:pointer;">
-    ✍️ Подписать акт
-  </button>
-</div>
+<!-- sign-bar удалён, логика в main-action-btn -->
 
 <!-- МОДАЛЬНОЕ ОКНО ПОДПИСИ -->
 <div id="sign-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:flex-end;">
@@ -665,9 +661,9 @@
 
     </div>
     <div id="est-phases"></div>
-    <a href="https://finance.ozon.ru/apps/sbp/ozonbankpay/019d0855-4631-76d3-a55d-e67421eaf506" target="_blank" style="display:block;background:var(--accent);color:white;text-align:center;padding:14px;border-radius:12px;text-decoration:none;font-weight:600;font-size:15px;margin-top:8px;">
+    <button id="main-action-btn" onclick="mainActionClick()" style="width:100%;padding:14px;background:var(--accent);color:#fff;border:none;border-radius:12px;font-family:'Manrope',sans-serif;font-size:15px;font-weight:700;cursor:pointer;margin-top:8px;">
       💳 Внести средства через СБП
-    </a>
+    </button>
   </div>
 
 </div>
@@ -1237,7 +1233,7 @@ const title = escapeHtml(f.name || 'Чек');
     document.getElementById('tab-main').style.color = tab === 'main' ? 'var(--accent)' : 'var(--muted)';
     document.getElementById('tab-estimate').style.color = tab === 'estimate' ? 'var(--accent)' : 'var(--muted)';
     if (tab === 'estimate') checkSignBar();
-    else document.getElementById('sign-bar').style.display = 'none';
+    // sign-bar удалён
   }
 
   function fmtRub(n) {
@@ -1471,17 +1467,28 @@ return `<div style="display:grid;grid-template-columns:22px 1fr auto;gap:6px;pad
   let _estimateData = null;
 
   function checkSignBar() {
-    const bar = document.getElementById('sign-bar');
-    if (!_estimateData || !_estimateData.phases) { bar.style.display = 'none'; return; }
+    if (!_estimateData || !_estimateData.phases) return;
     const idx = _estimateData.phases.findIndex(p => p.act_total > 0 && !p.signed);
-    if (idx >= 0) {
-  _signPhaseIndex = idx;
-  bar.style.display = 'block';
-  document.getElementById('estimate-dot').style.display = 'inline-block';
-  } else {
-  bar.style.display = 'none';
-  document.getElementById('estimate-dot').style.display = 'none';
+    _signPhaseIndex = idx >= 0 ? idx : null;
+    updateMainAction();
   }
+
+  function updateMainAction() {
+    const btn = document.getElementById('main-action-btn');
+    if (!btn) return;
+    if (_signPhaseIndex !== null) {
+      btn.textContent = '✍️ Подписать акт';
+      btn.onclick = openSignModal;
+      document.getElementById('estimate-dot').style.display = 'inline-block';
+    } else {
+      btn.textContent = '💳 Внести средства через СБП';
+      btn.onclick = mainActionClick;
+      document.getElementById('estimate-dot').style.display = 'none';
+    }
+  }
+
+  function mainActionClick() {
+    window.open('https://finance.ozon.ru/apps/sbp/ozonbankpay/019d0855-4631-76d3-a55d-e67421eaf506', '_blank');
   }
 
   function openSignModal() {
@@ -1540,7 +1547,7 @@ return `<div style="display:grid;grid-template-columns:22px 1fr auto;gap:6px;pad
       if (res.ok) {
         phase.signed = true;
         closeSignModal();
-        document.getElementById('sign-bar').style.display = 'none';
+        _signPhaseIndex = null; updateMainAction();
         // Обновляем badge этапа без перезагрузки
         const phaseEl = document.querySelector(`#phase-rows-${_signPhaseIndex}`)?.previousElementSibling;
         if (phaseEl) {
