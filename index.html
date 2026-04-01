@@ -1492,10 +1492,18 @@ return `<div style="display:grid;grid-template-columns:22px 1fr auto;gap:6px;pad
       return;
     }
     const phase = _estimateData.phases[_signPhaseIndex];
+    const nextPhase = _estimateData.phases[_signPhaseIndex + 1];
+    const advancePct = phase.act_advance / phase.phase_total;
+    const advanceNext = nextPhase ? Math.round(nextPhase.phase_total * advancePct) : 0;
+    const totalToPay = (phase.act_to_pay || 0) + advanceNext;
     const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
     const payload = {
       phase: phase.phase,
       act_final: phase.act_final,
+      act_to_pay: phase.act_to_pay || 0,
+      advance_next: advanceNext,
+      advance_next_phase: nextPhase ? nextPhase.phase : null,
+      total_to_pay: totalToPay,
       phone,
       telegram_id: tgUser?.id || null,
       telegram_name: tgUser?.first_name || null,
