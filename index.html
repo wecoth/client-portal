@@ -1464,11 +1464,13 @@ return `<div style="display:grid;grid-template-columns:22px 1fr auto;gap:6px;pad
     if (!_estimateData || !_estimateData.phases) { bar.style.display = 'none'; return; }
     const idx = _estimateData.phases.findIndex(p => p.act_total > 0 && !p.signed);
     if (idx >= 0) {
-      _signPhaseIndex = idx;
-      bar.style.display = 'block';
-    } else {
-      bar.style.display = 'none';
-    }
+  _signPhaseIndex = idx;
+  bar.style.display = 'block';
+  document.getElementById('estimate-dot').style.display = 'inline-block';
+  } else {
+  bar.style.display = 'none';
+  document.getElementById('estimate-dot').style.display = 'none';
+  }
   }
 
   function openSignModal() {
@@ -1595,7 +1597,7 @@ return `<div style="display:grid;grid-template-columns:22px 1fr auto;gap:6px;pad
     <span style="font-size:20px;">🏠</span>Объект
   </button>
   <button onclick="switchTab('estimate')" id="tab-estimate" style="flex:1;padding:12px 0;border:none;background:none;font-family:'Manrope',sans-serif;font-size:12px;font-weight:600;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;">
-    <span style="font-size:20px;">📋</span>Смета
+    <span style="position:relative;display:inline-block;font-size:20px;">📋<span id="estimate-dot" style="display:none;position:absolute;top:-2px;right:-4px;width:8px;height:8px;background:#D32F2F;border-radius:50%;border:1.5px solid var(--surface);"></span></span>Смета
   </button>
 </nav>
 
