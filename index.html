@@ -18,15 +18,16 @@
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #F5F2EE;
-    --surface: #FFFFFF;
-    --ink: #1C1A17;
-    --ink-soft: #6B6560;
+    --bg: #13151f;
+    --surface: #1e2130;
+    --surface2: #252838;
+    --ink: #eef0f8;
+    --ink-soft: #8b8fa8;
     --accent: #C4602A;
-    --accent-light: #F0E0D6;
-    --border: #E2DDD8;
-    --success: #4A7C59;
-    --muted: #B8B2AB;
+    --accent-light: rgba(196,96,42,0.2);
+    --border: rgba(255,255,255,0.09);
+    --success: #4ade80;
+    --muted: #5a5e75;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -84,8 +85,8 @@
 
   /* HEADER */
   .header {
-    background: var(--ink);
-    color: #F5F2EE;
+    background: linear-gradient(160deg, #1e2d4a 0%, #162038 55%, #13151f 100%);
+    color: #eef0f8;
     padding: 116px 18px 20px;
     min-height: 220px;
     position: relative;
@@ -97,14 +98,14 @@
     top: -60px; right: -60px;
     width: 200px; height: 200px;
     border-radius: 50%;
-    background: rgba(196,96,42,0.15);
+    background: rgba(0,100,200,0.18);
   }
   .header-label {
     font-size: 11px;
     font-weight: 500;
     letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: var(--muted);
+    color: rgba(255,255,255,0.35);
     margin-bottom: 10px;
     min-height: 28px;
     display: flex;
@@ -131,9 +132,9 @@
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  background: rgba(196,96,42,0.2);
-  border: 1px solid rgba(196,96,42,0.4);
-  color: #F0A070;
+  background: rgba(0,120,215,0.25);
+  border: 1px solid rgba(0,120,215,0.5);
+  color: #60b0ff;
   padding: 6px 12px;
   border-radius: 100px;
   font-size: 12px;
@@ -145,7 +146,7 @@
   .status-dot {
     width: 7px; height: 7px;
     border-radius: 50%;
-    background: #F0A070;
+    background: #60b0ff;
     animation: pulse 2s infinite;
   }
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
@@ -153,7 +154,10 @@
   /* PROGRESS */
   .progress-section {
     background: var(--surface);
-    padding: 20px 24px;
+    padding: 18px 20px 14px;
+    border-radius: 16px 16px 0 0;
+    margin: 10px 12px 0;
+    border: 0.5px solid var(--border);
     border-bottom: none;
   }
   .progress-meta {
@@ -176,15 +180,15 @@
     color: var(--accent);
   }
   .progress-track {
-    height: 6px;
-    background: var(--border);
-    border-radius: 3px;
+    height: 4px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 2px;
     overflow: hidden;
   }
   .progress-fill {
     height: 100%;
-    background: linear-gradient(90deg, var(--accent), #D4824A);
-    border-radius: 3px;
+    background: var(--accent);
+    border-radius: 2px;
     transition: width 1.2s cubic-bezier(0.4,0,0.2,1);
     width: 0%;
   }
@@ -198,19 +202,23 @@
 
   /* SECTIONS */
   .section {
-    padding: 24px;
-    border-bottom: 1px solid var(--border);
+    padding: 18px 20px;
+    border-bottom: none;
+    border-radius: 16px;
     background: var(--surface);
-    margin-top: 8px;
+    border: 0.5px solid var(--border);
+    margin: 10px 12px 0;
     animation: fadeUp 0.5s ease both;
   }
 
   .dates-section {
-  margin-top: 0;
-  border-top: none !important;
-  border-bottom: 1px solid var(--border);
-  padding-top: 8px;
-}
+    margin: 0 12px 0;
+    border-top: none !important;
+    border-bottom: 0.5px solid var(--border) !important;
+    border-radius: 0 0 16px 16px;
+    padding-top: 0;
+    padding-bottom: 18px;
+  }
 
   .section-title {
     font-family: 'Manrope', serif;
@@ -230,10 +238,10 @@
 }
 
 .photos-toggle-btn {
-  border: 1px solid var(--border);
-  background: var(--surface);
-  border-radius: 10px;
-  height: 34px;
+  border: 0.5px solid var(--border);
+  background: rgba(255,255,255,0.06);
+  border-radius: 8px;
+  height: 32px;
   min-width: 108px;
   padding: 0 14px;
   font-size: 13px;
@@ -266,7 +274,7 @@
   padding: 0;
   border-radius: 10px;
   overflow: hidden;
-  background: #e2ddd8;
+  background: rgba(255,255,255,0.08);
   cursor: pointer;
 }
 
@@ -286,20 +294,10 @@
 .photos-collapsed::after {
   content: '';
   position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  left: 0; right: 0; bottom: 0;
   height: 50px;
   pointer-events: none;
-  background:
-    linear-gradient(
-      to bottom,
-      rgba(255,255,255,0) 0%,
-      rgba(255,255,255,0.18) 20%,
-      rgba(255,255,255,0.52) 45%,
-      rgba(255,255,255,0.82) 72%,
-      var(--surface) 100%
-    );
+  background: linear-gradient(to bottom, rgba(30,33,48,0) 0%, rgba(30,33,48,0.85) 80%, var(--surface) 100%);
 }
 
   .photos-collapsed-list {
@@ -312,18 +310,10 @@
 .photos-collapsed-list::after {
   content: '';
   position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  left: 0; right: 0; bottom: 0;
   height: 50px;
   pointer-events: none;
-  background: linear-gradient(
-    to bottom,
-    rgba(255,255,255,0) 0%,
-    rgba(255,255,255,0.24) 30%,
-    rgba(255,255,255,0.7) 65%,
-    var(--surface) 100%
-  );
+  background: linear-gradient(to bottom, rgba(30,33,48,0) 0%, rgba(30,33,48,0.85) 80%, var(--surface) 100%);
 }
   
   /* FINANCES */
@@ -379,9 +369,10 @@
     gap: 12px;
   }
   .date-card {
-    background: var(--bg);
-    border-radius: 12px;
-    padding: 16px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 10px;
+    padding: 14px;
+    border: 0.5px solid var(--border);
   }
   .date-card-label {
     font-size: 11px;
@@ -393,8 +384,9 @@
   }
   .date-card-value {
     font-family: 'Manrope', serif;
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 600;
+    color: var(--ink);
   }
   .date-card-sub {
     font-size: 12px;
@@ -405,9 +397,10 @@
 
   /* MANAGER */
   .manager-card {
-    margin: 8px;
-    background: var(--ink);
-    color: #F5F2EE;
+    margin: 10px 12px 0;
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    color: var(--ink);
     border-radius: 16px;
     padding: 20px;
     display: flex;
@@ -434,16 +427,16 @@
     letter-spacing: 0.08em;
     font-weight: 500;
   }
-  .manager-name { font-size: 16px; font-weight: 500; margin-top: 2px; }
+  .manager-name { font-size: 16px; font-weight: 500; margin-top: 2px; color: var(--ink); }
   .manager-btn {
     margin-left: auto;
     background: var(--accent);
     color: white;
     border: none;
     padding: 10px 16px;
-    border-radius: 10px;
+    border-radius: 8px;
     font-size: 13px;
-    font-weight: 500;
+    font-weight: 600;
     font-family: 'Manrope', sans-serif;
     cursor: pointer;
     flex-shrink: 0;
@@ -516,8 +509,8 @@
 </div>
 
 <!-- MAIN CONTENT -->
-<div class="main" id="main" style="padding-bottom:70px;">
-<div id="tab-content-main">
+<div class="main" id="main" style="padding-bottom:70px;background:var(--bg);">
+<div id="tab-content-main" style="background:var(--bg);padding-bottom:12px;">
   
   <div class="header">
     <div class="header-label">Ваш объект</div>
@@ -530,7 +523,7 @@
     </div>
   </div>
 
-  <div class="progress-section">
+  <div class="progress-section" style="margin-top:10px;margin-left:12px;margin-right:12px;border-radius:16px 16px 0 0;border-bottom:none;">
     <div class="progress-meta">
       <span class="progress-label">Прогресс по срокам</span>
       <span class="progress-pct" id="progress-pct">—</span>
@@ -566,14 +559,14 @@
 <div id="transactions" style="display:none;"></div>
   
 <!-- ACTION ALERT (iOS-style) -->
-<div id="action-alert-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:300;align-items:center;justify-content:center;padding:32px;">
-  <div style="background:#F5F2EE;border-radius:20px;width:100%;max-width:320px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+<div id="action-alert-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:300;align-items:center;justify-content:center;padding:32px;">
+  <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:20px;width:100%;max-width:320px;overflow:hidden;">
     <div style="padding:24px 20px 16px;text-align:center;">
       <div style="font-size:17px;font-weight:700;color:var(--ink);margin-bottom:6px;" id="alert-title">Этап №2</div>
       <div style="font-size:14px;color:var(--ink-soft);line-height:1.5;">Акт выполненных работ ожидает вашего подписания</div>
     </div>
-    <div style="border-top:1px solid var(--border);display:flex;flex-direction:column;">
-      <button onclick="alertGoToSign()" style="padding:14px;background:none;border:none;border-bottom:1px solid var(--border);font-family:'Manrope',sans-serif;font-size:16px;font-weight:700;color:var(--accent);cursor:pointer;">
+    <div style="border-top:0.5px solid var(--border);display:flex;flex-direction:column;">
+      <button onclick="alertGoToSign()" style="padding:14px;background:none;border:none;border-bottom:0.5px solid var(--border);font-family:'Manrope',sans-serif;font-size:16px;font-weight:700;color:var(--accent);cursor:pointer;">
         Перейти к подписанию
       </button>
       <button onclick="alertClose()" style="padding:14px;background:none;border:none;font-family:'Manrope',sans-serif;font-size:16px;color:var(--ink-soft);cursor:pointer;">
@@ -636,13 +629,13 @@
 <!-- sign-bar удалён, логика в main-action-btn -->
 
 <!-- МОДАЛЬНОЕ ОКНО ПОДПИСИ -->
-<div id="sign-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:flex-end;">
-  <div style="background:var(--surface);border-radius:20px 20px 0 0;padding:24px 20px 40px;width:100%;">
+<div id="sign-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;align-items:flex-end;">
+  <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:20px 20px 0 0;padding:24px 20px 40px;width:100%;">
     <div style="font-size:17px;font-weight:700;color:var(--ink);margin-bottom:6px;">Подписание акта</div>
     <div id="sign-phase-label" style="font-size:13px;color:var(--ink-soft);margin-bottom:20px;"></div>
     <div style="font-size:13px;color:var(--ink-soft);margin-bottom:8px;">Введите номер телефона как в договоре</div>
     <input id="sign-phone" type="tel" placeholder="+7 (___) ___-__-__"
-      style="width:100%;padding:13px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:'Manrope',sans-serif;font-size:15px;margin-bottom:16px;outline:none;background:var(--bg);">
+      style="width:100%;padding:13px 14px;border:0.5px solid var(--border);border-radius:10px;font-family:'Manrope',sans-serif;font-size:15px;margin-bottom:16px;outline:none;background:rgba(255,255,255,0.06);color:var(--ink);">
     <div style="font-size:12px;color:var(--muted);margin-bottom:20px;line-height:1.5;">
       Нажимая «Подтвердить», вы подтверждаете приёмку работ по данному акту. Факт подписания фиксируется с датой и вашими данными.
     </div>
@@ -656,25 +649,25 @@
   </div>
 </div>
 
-<div id="tab-content-estimate" style="display:none;padding:100px 16px 70px;">
+<div id="tab-content-estimate" style="display:none;padding:100px 16px 70px;background:var(--bg);">
   
   <div id="est-loading" style="text-align:center;padding:40px 0;color:var(--muted);font-size:14px;">Загружаем смету...</div>
   <div id="est-error" style="display:none;text-align:center;padding:40px 0;color:var(--muted);font-size:14px;">Смета не найдена</div>
 
   <div id="est-content" style="display:none;">
-    <div style="background:var(--ink);color:#F5F2EE;border-radius:16px;padding:20px;margin-bottom:12px;">
+    <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:16px;padding:20px;margin-bottom:12px;">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;">
         <div>
-          <div style="font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:#9b948e;margin-bottom:4px;">Внесено</div>
-          <div id="est-paid-total" style="font-size:24px;font-weight:700;letter-spacing:-.02em;color:#8BC34A;">—</div>
+          <div style="font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Внесено</div>
+          <div id="est-paid-total" style="font-size:24px;font-weight:700;letter-spacing:-.02em;color:#4ade80;">—</div>
         </div>
         <div style="text-align:right;">
-          <div style="font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:#9b948e;margin-bottom:4px;">Итого по смете</div>
-          <div id="est-grand-total" style="font-size:24px;font-weight:700;letter-spacing:-.02em;">—</div>
+          <div style="font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Итого по смете</div>
+          <div id="est-grand-total" style="font-size:24px;font-weight:700;letter-spacing:-.02em;color:var(--ink);">—</div>
         </div>
       </div>
       <div style="height:4px;background:rgba(255,255,255,0.1);border-radius:2px;margin-bottom:16px;">
-        <div id="est-paid-bar" style="height:100%;background:#8BC34A;border-radius:2px;width:0%;transition:width 1s ease;"></div>
+        <div id="est-paid-bar" style="height:100%;background:#4ade80;border-radius:2px;width:0%;transition:width 1s ease;"></div>
       </div>
 
     </div>
@@ -1094,9 +1087,9 @@
 );
 const title = escapeHtml(f.name || 'Документ');
 
-        return '<button type="button" data-type="' + type + '" data-url="' + url + '" data-title="' + title + '" style="display:flex;align-items:center;gap:14px;padding:14px;background:var(--bg);border-radius:10px;border:0;width:100%;text-align:left;cursor:pointer;">' +
-          '<div style="width:38px;height:38px;background:var(--surface);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">📑</div>' +
-          '<div style="font-size:14px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px;">' + title + '</div>' +
+        return '<button type="button" data-type="' + type + '" data-url="' + url + '" data-title="' + title + '" style="display:flex;align-items:center;gap:14px;padding:14px;background:rgba(255,255,255,0.05);border-radius:10px;border:0.5px solid var(--border);width:100%;text-align:left;cursor:pointer;">' +
+          '<div style="width:38px;height:38px;background:var(--accent-light);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">📑</div>' +
+          '<div style="font-size:14px;font-weight:500;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px;">' + title + '</div>' +
           '<div style="margin-left:auto;color:var(--muted);">Открыть</div>' +
           '</button>';
       }).join('');
@@ -1155,9 +1148,9 @@ const title = escapeHtml(f.name || 'Документ');
 );
 const title = escapeHtml(f.name || 'Чек');
 
-        return '<button type="button" data-type="' + type + '" data-url="' + url + '" data-title="' + title + '" style="display:flex;align-items:center;gap:14px;padding:14px;background:var(--bg);border-radius:10px;border:0;width:100%;text-align:left;cursor:pointer;">' +
-          '<div style="width:38px;height:38px;background:var(--surface);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🧾</div>' +
-          '<div style="font-size:14px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px;">' + title + '</div>' +
+        return '<button type="button" data-type="' + type + '" data-url="' + url + '" data-title="' + title + '" style="display:flex;align-items:center;gap:14px;padding:14px;background:rgba(255,255,255,0.05);border-radius:10px;border:0.5px solid var(--border);width:100%;text-align:left;cursor:pointer;">' +
+          '<div style="width:38px;height:38px;background:var(--accent-light);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🧾</div>' +
+          '<div style="font-size:14px;font-weight:500;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px;">' + title + '</div>' +
           '<div style="margin-left:auto;color:var(--muted);">Открыть</div>' +
           '</button>';
       }).join('');
@@ -1445,11 +1438,11 @@ return `<div style="display:grid;grid-template-columns:22px 1fr auto;gap:6px;pad
     const extraTotal = extraItems.reduce((s, i) => s + (i.price_total || 0), 0);
     const badgeTotal = hasAct ? fmtRub(phase.act_final) : fmtRub(phase.phase_total + extraTotal);
 
-    return `<div style="border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:8px;">
+    return `<div style="border:0.5px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:8px;background:var(--surface);">
       <div onclick="togglePhase(${pi})" style="display:flex;align-items:center;gap:10px;padding:14px 16px;cursor:pointer;background:var(--surface);">
         <span style="font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;background:var(--accent-light);color:var(--accent);padding:4px 10px;border-radius:100px;flex-shrink:0;">${escapeHtml(phase.phase)}</span>
         <span style="flex:1;font-size:13px;font-weight:600;color:var(--ink);">${badgeTotal}</span>
-        ${phase.signed ? '<span style="font-size:11px;background:#EAF3DE;color:#3B6D11;padding:2px 8px;border-radius:100px;font-weight:600;">Закрыт</span>' : hasAct ? '<span style="font-size:11px;background:#FFF3E0;color:#E65100;padding:2px 8px;border-radius:100px;font-weight:600;">На подписании</span>' : ''}
+        ${phase.signed ? '<span style="font-size:11px;background:rgba(74,222,128,0.15);color:#4ade80;padding:2px 8px;border-radius:100px;font-weight:600;">Закрыт</span>' : hasAct ? '<span style="font-size:11px;background:rgba(251,191,36,0.15);color:#fbbf24;padding:2px 8px;border-radius:100px;font-weight:600;">На подписании</span>' : ''}
         <span id="chev-${pi}" style="color:var(--muted);font-size:11px;transition:transform .2s;">▼</span>
       </div>
       <div id="phase-rows-${pi}" style="display:none;">${sections}${extraBlock}${actBlock}</div>
@@ -1658,12 +1651,12 @@ return `<div style="display:grid;grid-template-columns:22px 1fr auto;gap:6px;pad
   }
 </script>
 
-<nav style="position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);display:flex;z-index:100;padding-bottom:env(safe-area-inset-bottom,0px);">
+<nav style="position:fixed;bottom:0;left:0;right:0;background:rgba(19,21,31,0.95);border-top:0.5px solid rgba(255,255,255,0.09);display:flex;z-index:100;padding-bottom:env(safe-area-inset-bottom,0px);">
   <button onclick="switchTab('main')" id="tab-main" style="flex:1;padding:12px 0;border:none;background:none;font-family:'Manrope',sans-serif;font-size:12px;font-weight:600;color:var(--accent);display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;">
     <span style="font-size:20px;">🏠</span>Объект
   </button>
   <button onclick="switchTab('estimate')" id="tab-estimate" style="flex:1;padding:12px 0;border:none;background:none;font-family:'Manrope',sans-serif;font-size:12px;font-weight:600;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;">
-    <span style="position:relative;display:inline-block;font-size:20px;">📋<span id="estimate-dot" style="display:none;position:absolute;top:-2px;right:-4px;width:8px;height:8px;background:#D32F2F;border-radius:50%;border:1.5px solid var(--surface);"></span></span>Смета
+    <span style="position:relative;display:inline-block;font-size:20px;">📋<span id="estimate-dot" style="display:none;position:absolute;top:-2px;right:-4px;width:8px;height:8px;background:#D32F2F;border-radius:50%;border:1.5px solid #13151f;"></span></span>Смета
   </button>
 </nav>
 
