@@ -565,6 +565,17 @@
 <div id="balance" style="display:none;"></div>
 <div id="transactions" style="display:none;"></div>
   
+<!-- ACTION BANNER -->
+<div id="action-banner" style="display:none;margin:0 16px 12px;background:var(--ink);border-radius:14px;padding:14px 16px;align-items:center;justify-content:space-between;gap:12px;">
+  <div>
+    <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#9b948e;margin-bottom:2px;">Требует внимания</div>
+    <div id="action-banner-text" style="font-size:14px;font-weight:700;color:#F5F2EE;">Этап №2 — ожидает подписания</div>
+  </div>
+  <button onclick="switchTab('estimate')" style="flex-shrink:0;background:var(--accent);color:#fff;border:none;border-radius:10px;padding:8px 14px;font-family:'Manrope',sans-serif;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;">
+    Перейти →
+  </button>
+</div>
+
   <!-- PHOTOS -->
   <div class="section" id="photos-section" style="display:none">
   <div class="section-title photos-title">
@@ -1471,6 +1482,19 @@ return `<div style="display:grid;grid-template-columns:22px 1fr auto;gap:6px;pad
     const idx = _estimateData.phases.findIndex(p => p.act_total > 0 && !p.signed);
     _signPhaseIndex = idx >= 0 ? idx : null;
     updateMainAction();
+    updateActionBanner();
+  }
+
+  function updateActionBanner() {
+    const banner = document.getElementById('action-banner');
+    if (!banner) return;
+    if (_signPhaseIndex !== null) {
+      const phase = _estimateData.phases[_signPhaseIndex];
+      document.getElementById('action-banner-text').textContent = phase.phase + ' — ожидает подписания';
+      banner.style.display = 'flex';
+    } else {
+      banner.style.display = 'none';
+    }
   }
 
   function updateMainAction() {
@@ -1547,7 +1571,7 @@ return `<div style="display:grid;grid-template-columns:22px 1fr auto;gap:6px;pad
       if (res.ok) {
         phase.signed = true;
         closeSignModal();
-        _signPhaseIndex = null; updateMainAction();
+        _signPhaseIndex = null; updateMainAction(); updateActionBanner();
         // Обновляем badge этапа без перезагрузки
         const phaseEl = document.querySelector(`#phase-rows-${_signPhaseIndex}`)?.previousElementSibling;
         if (phaseEl) {
