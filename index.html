@@ -154,7 +154,9 @@
   .progress-section {
     background: var(--surface);
     padding: 20px 24px;
-    margin-bottom: 8px;
+    margin: 0 12px 10px;
+    border-radius: 16px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
   }
   .progress-meta {
     display: flex;
@@ -200,8 +202,10 @@
   .section {
     padding: 24px;
     border-bottom: none;
-    margin-bottom: 8px;
+    margin: 0 12px 10px;
+    border-radius: 16px;
     background: var(--surface);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
     animation: fadeUp 0.5s ease both;
   }
 
@@ -405,7 +409,7 @@
 
   /* MANAGER */
   .manager-card {
-    margin: 8px;
+    margin: 0 12px 10px;
     background: var(--ink);
     color: #F5F2EE;
     border-radius: 16px;
@@ -516,8 +520,8 @@
 </div>
 
 <!-- MAIN CONTENT -->
-<div class="main" id="main" style="padding-bottom:70px;background:var(--surface);">
-<div id="tab-content-main" style="background:var(--surface);">
+<div class="main" id="main" style="padding-bottom:70px;background:var(--bg);">
+<div id="tab-content-main" style="background:var(--bg);">
   
   <div class="header">
     <div class="header-label">Ваш объект</div>
@@ -530,7 +534,7 @@
     </div>
   </div>
 
-  <div class="progress-section">
+  <div class="progress-section" style="margin-top:12px;">
     <div class="progress-meta">
       <span class="progress-label">Прогресс по срокам</span>
       <span class="progress-pct" id="progress-pct">—</span>
@@ -569,6 +573,7 @@
 <div id="action-alert-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:300;align-items:center;justify-content:center;padding:32px;">
   <div style="background:#F5F2EE;border-radius:20px;width:100%;max-width:320px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
     <div style="padding:24px 20px 16px;text-align:center;">
+      <div style="font-size:28px;margin-bottom:10px;">✍️</div>
       <div style="font-size:17px;font-weight:700;color:var(--ink);margin-bottom:6px;" id="alert-title">Этап №2</div>
       <div style="font-size:14px;color:var(--ink-soft);line-height:1.5;">Акт выполненных работ ожидает вашего подписания</div>
     </div>
@@ -1527,7 +1532,7 @@ return `<div style="display:grid;grid-template-columns:22px 1fr auto;gap:6px;pad
     const btn = document.getElementById('main-action-btn');
     if (!btn) return;
     if (_signPhaseIndex !== null) {
-      btn.textContent = 'Подписать акт';
+      btn.textContent = '✍️ Подписать акт';
       btn.onclick = openSignModal;
       document.getElementById('estimate-dot').style.display = 'inline-block';
     } else {
