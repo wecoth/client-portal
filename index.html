@@ -560,23 +560,10 @@
     </div>
   </div>
 
-<!-- FINANCES & PAYMENT -->
-<div class="section">
-  <div class="section-title">Оплата</div>
-  <div class="finance-card accent" style="margin-bottom:16px;">
-    <div class="finance-card-label">Внесено</div>
-    <div class="finance-card-amount" id="total-income">—</div>
-  </div>
-  <div id="balance" style="display:none;"></div>
-  <div class="transactions" id="transactions">
-    <div class="empty">Загрузка...</div>
-  </div>
-  <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">
-    <a href="https://finance.ozon.ru/apps/sbp/ozonbankpay/019d0855-4631-76d3-a55d-e67421eaf506" target="_blank" style="display:block;background:var(--accent);color:white;text-align:center;padding:14px;border-radius:12px;text-decoration:none;font-weight:600;font-size:15px;margin-bottom:12px;">
-      Внести средства через СБП
-    </a>
-  </div>
-</div>
+<!-- FINANCES & PAYMENT (скрытый, оставляем для совместимости) -->
+<div id="total-income" style="display:none;"></div>
+<div id="balance" style="display:none;"></div>
+<div id="transactions" style="display:none;"></div>
   
   <!-- PHOTOS -->
   <div class="section" id="photos-section" style="display:none">
@@ -662,10 +649,25 @@
 
   <div id="est-content" style="display:none;">
     <div style="background:var(--ink);color:#F5F2EE;border-radius:16px;padding:20px;margin-bottom:12px;">
-      <div style="font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:#9b948e;margin-bottom:4px;">Итого по смете</div>
-      <div id="est-grand-total" style="font-size:28px;font-weight:700;letter-spacing:-.02em;">—</div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;">
+        <div>
+          <div style="font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:#9b948e;margin-bottom:4px;">Итого по смете</div>
+          <div id="est-grand-total" style="font-size:24px;font-weight:700;letter-spacing:-.02em;">—</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:#9b948e;margin-bottom:4px;">Внесено</div>
+          <div id="est-paid-total" style="font-size:24px;font-weight:700;letter-spacing:-.02em;color:#8BC34A;">—</div>
+        </div>
+      </div>
+      <div style="height:4px;background:rgba(255,255,255,0.1);border-radius:2px;margin-bottom:16px;">
+        <div id="est-paid-bar" style="height:100%;background:#8BC34A;border-radius:2px;width:0%;transition:width 1s ease;"></div>
+      </div>
+
     </div>
     <div id="est-phases"></div>
+    <a href="https://finance.ozon.ru/apps/sbp/ozonbankpay/019d0855-4631-76d3-a55d-e67421eaf506" target="_blank" style="display:block;background:var(--accent);color:white;text-align:center;padding:14px;border-radius:12px;text-decoration:none;font-weight:600;font-size:15px;margin-top:8px;">
+      💳 Внести средства через СБП
+    </a>
   </div>
 
 </div>
@@ -1333,6 +1335,12 @@ const title = escapeHtml(f.name || 'Чек');
   }
   document.getElementById('est-content').style.display = 'block';
   document.getElementById('est-grand-total').textContent = fmtRub(data.grand_total);
+
+  // Считаем сколько внесено (сумма act_final по подписанным этапам)
+  const paidTotal = data.phases.reduce((s, p) => s + (p.signed && p.act_final ? p.act_final : 0), 0);
+  const paidPct = data.grand_total > 0 ? Math.min(100, Math.round(paidTotal / data.grand_total * 100)) : 0;
+  document.getElementById('est-paid-total').textContent = fmtRub(paidTotal);
+  setTimeout(() => { document.getElementById('est-paid-bar').style.width = paidPct + '%'; }, 100);
 
   const container = document.getElementById('est-phases');
   container.innerHTML = data.phases.map((phase, pi) => {
