@@ -154,11 +154,11 @@
   /* PROGRESS */
   .progress-section {
     background: var(--surface);
-    padding: 18px 20px 14px;
-    border-radius: 16px 16px 0 0;
-    margin: 10px 12px 0;
+    padding: 14px 20px 18px;
+    border-radius: 0 0 16px 16px;
+    margin: 0 12px 0;
     border: 0.5px solid var(--border);
-    border-bottom: none;
+    border-top: 0.5px solid rgba(255,255,255,0.06);
   }
   .progress-meta {
     display: flex;
@@ -212,12 +212,12 @@
   }
 
   .dates-section {
-    margin: 0 12px 0;
-    border-top: none !important;
-    border-bottom: 0.5px solid var(--border) !important;
-    border-radius: 0 0 16px 16px;
-    padding-top: 0;
-    padding-bottom: 18px;
+    margin: 10px 12px 0;
+    border-top: 0.5px solid var(--border) !important;
+    border-bottom: none !important;
+    border-radius: 16px 16px 0 0;
+    padding-top: 18px;
+    padding-bottom: 14px;
   }
 
   .section-title {
@@ -524,7 +524,7 @@
   </div>
 
   <!-- DATES -->
-  <div class="section dates-section" style="margin-top:10px;margin-left:12px;margin-right:12px;border-radius:16px 16px 0 0;border-bottom:none;padding-bottom:14px;">
+  <div class="section dates-section">
     <div class="dates-grid">
       <div class="date-card">
         <div class="date-card-label">Начало работ</div>
@@ -539,7 +539,7 @@
     </div>
   </div>
 
-  <div class="progress-section" style="margin-left:12px;margin-right:12px;border-radius:0 0 16px 16px;border-top:0.5px solid rgba(255,255,255,0.06);">
+  <div class="progress-section">
     <div class="progress-meta">
       <span class="progress-label">Прогресс по срокам</span>
       <span class="progress-pct" id="progress-pct">—</span>
