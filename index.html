@@ -1415,14 +1415,17 @@ return `<div style="display:grid;grid-template-columns:22px 1fr auto;gap:6px;pad
           <span style="color:var(--ink);">Итого к оплате</span>
           <span style="color:var(--ink);">${fmtRub(phase.act_final)}</span>
         </div>
-        <div style="display:flex;justify-content:space-between;font-size:13px;">
+        ${!phase.act_pay_is_manual ? `<div style="display:flex;justify-content:space-between;font-size:13px;">
           <span style="color:var(--ink-soft);">Аванс (${Math.round((phase.act_advance / phase.phase_total) * 100)}%)</span>
           <span style="color:var(--ink-soft);">−${fmtRub(phase.act_advance)}</span>
-        </div>
+        </div>` : ''}
         <div style="display:flex;justify-content:space-between;font-size:15px;font-weight:700;padding-top:8px;border-top:1px solid var(--border);">
           <span style="color:var(--ink);">К доплате</span>
           <span style="color:var(--accent);">${fmtRub(phase.act_to_pay)}</span>
         </div>
+        ${phase.act_pay_is_manual && phase.act_pay_comment ? `<div style="font-size:12px;color:var(--ink-soft);padding-top:4px;">
+          ${escapeHtml(phase.act_pay_comment)}
+        </div>` : ''}
       </div>` : '';
 
     const extraTotal = extraItems.reduce((s, i) => s + (i.price_total || 0), 0);
