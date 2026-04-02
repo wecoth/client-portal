@@ -650,6 +650,45 @@
   </div>
 </div>
 
+<!-- МОДАЛКА ПОСЛЕ ПОДПИСАНИЯ -->
+<div id="pay-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:200;align-items:flex-end;">
+  <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:20px 20px 0 0;padding:24px 20px 40px;width:100%;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
+      <div style="width:40px;height:40px;border-radius:50%;background:rgba(74,222,128,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <div>
+        <div style="font-size:17px;font-weight:700;color:var(--ink);">Акт подписан</div>
+        <div id="pay-phase" style="font-size:13px;color:var(--ink-soft);margin-top:2px;"></div>
+      </div>
+    </div>
+    <div id="pay-date" style="font-size:12px;color:var(--muted);margin-bottom:16px;"></div>
+    <div style="background:var(--surface2);border-radius:14px;padding:16px;margin-bottom:20px;">
+      <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;">К оплате</div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+        <span style="font-size:14px;color:var(--ink-soft);">Остаток по акту:</span>
+        <span id="pay-balance" style="font-size:14px;font-weight:600;color:var(--ink);"></span>
+      </div>
+      <div id="pay-adv-row" style="display:flex;justify-content:space-between;margin-bottom:8px;">
+        <span id="pay-adv-label" style="font-size:14px;color:var(--ink-soft);"></span>
+        <span id="pay-adv" style="font-size:14px;font-weight:600;color:var(--ink);"></span>
+      </div>
+      <div style="border-top:0.5px solid var(--border);margin:10px 0 12px;"></div>
+      <div style="display:flex;justify-content:space-between;">
+        <span style="font-size:15px;font-weight:700;color:var(--ink);">Итого к переводу:</span>
+        <span id="pay-total" style="font-size:15px;font-weight:700;color:var(--accent);"></span>
+      </div>
+    </div>
+    <button id="pay-sbp-btn" style="width:100%;padding:14px;background:var(--accent);color:#fff;border:none;border-radius:12px;font-family:'Manrope',sans-serif;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:10px;display:flex;align-items:center;justify-content:center;gap:8px;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+      Оплатить через СБП
+    </button>
+    <button onclick="closePayModal()" style="width:100%;padding:12px;background:none;color:var(--ink-soft);border:none;font-family:'Manrope',sans-serif;font-size:14px;cursor:pointer;">
+      Закрыть
+    </button>
+  </div>
+</div>
+  
 <div id="tab-content-estimate" style="display:none;padding:100px 16px 70px;background:var(--bg);">
   
   <div id="est-loading" style="text-align:center;padding:40px 0;color:var(--muted);font-size:14px;">Загружаем смету...</div>
@@ -1685,7 +1724,13 @@ return `<div style="display:grid;grid-template-columns:22px 1fr auto;gap:6px;pad
             oldBadge.textContent = 'Закрыт';
           }
         }
-        alert('\u2705 Акт подписан. Подтверждение отправлено в Telegram.');
+          phase: payload.phase,
+  act_to_pay: payload.act_to_pay,
+  advance_next: payload.advance_next,
+  advance_next_phase: payload.advance_next_phase,
+  total_to_pay: payload.total_to_pay,
+  signed_at: payload.signed_at
+});
       } else {
         btn.disabled = false;
         btnText.textContent = 'Подтвердить';
@@ -1700,6 +1745,34 @@ return `<div style="display:grid;grid-template-columns:22px 1fr auto;gap:6px;pad
     }
   }
 
+function showPaymentScreen(data) {
+    const fmt = n => Number(n).toLocaleString('ru-RU') + ' ₽';
+    document.getElementById('pay-phase').textContent = data.phase;
+    document.getElementById('pay-date').textContent = data.signed_at + ' · Подтверждение отправлено в Telegram';
+    document.getElementById('pay-balance').textContent = fmt(data.act_to_pay);
+    const advRow = document.getElementById('pay-adv-row');
+    if (data.advance_next > 0) {
+      document.getElementById('pay-adv-label').textContent = 'Аванс за ' + (data.advance_next_phase || 'следующий этап') + ':';
+      document.getElementById('pay-adv').textContent = fmt(data.advance_next);
+      advRow.style.display = 'flex';
+    } else {
+      advRow.style.display = 'none';
+    }
+    document.getElementById('pay-total').textContent = fmt(data.total_to_pay);
+    const phone = '+79667601666'; // ← сюда вставь нужный номер
+    const sum = Math.round(data.total_to_pay * 100);
+    const purpose = encodeURIComponent('Оплата ' + data.phase);
+    document.getElementById('pay-sbp-btn').onclick = () =>
+      window.open(`https://qr.nspk.ru/pay?phone=${encodeURIComponent(phone)}&sum=${sum}&purpose=${purpose}`, '_blank');
+    document.getElementById('pay-modal').style.display = 'flex';
+    document.body.classList.add('modal-open');
+  }
+
+  function closePayModal() {
+    document.getElementById('pay-modal').style.display = 'none';
+    document.body.classList.remove('modal-open');
+  }
+  
   async function confirmPayment() {
     const amount = document.getElementById('payment-amount')?.value;
     if (!amount || isNaN(amount) || Number(amount) <= 0) {
