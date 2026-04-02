@@ -658,11 +658,12 @@
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
       </div>
       <div>
-        <div style="font-size:17px;font-weight:700;color:var(--ink);">Акт подписан</div>
+        <div style="font-size:17px;font-weight:700;color:var(--ink);">Реквизиты для перевода</div>
         <div id="pay-phase" style="font-size:13px;color:var(--ink-soft);margin-top:2px;"></div>
       </div>
     </div>
-    <div id="pay-date" style="font-size:12px;color:var(--muted);margin-bottom:16px;"></div>
+    <div style="font-size:13px;color:var(--ink-soft);margin-bottom:16px;line-height:1.5;">Ни на что не намекаем, но реквизиты на всякий случай оставим</div>
+    <div id="pay-date" style="font-size:12px;color:var(--muted);margin-bottom:16px;display:none;"></div>
     <div style="background:var(--surface2);border-radius:14px;padding:16px;margin-bottom:20px;">
       <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;">К оплате</div>
       <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
@@ -680,16 +681,16 @@
       </div>
     </div>
     <div style="background:var(--surface2);border-radius:14px;padding:16px;margin-bottom:20px;">
-      <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;">Перевод по СБП</div>
-      <div style="font-size:13px;color:var(--ink-soft);margin-bottom:6px;">Номер телефона</div>
+      <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;">Перевод по СБП</div>
+      <div style="font-size:12px;color:var(--ink-soft);margin-bottom:6px;">Номер телефона</div>
       <div style="display:flex;align-items:center;justify-content:space-between;background:var(--bg);border-radius:10px;padding:12px 14px;margin-bottom:12px;">
-        <span id="pay-phone-display" style="font-size:17px;font-weight:700;color:var(--ink);letter-spacing:.04em;"></span>
-        <button onclick="copyPayPhone()" id="copy-phone-btn" style="background:none;border:none;color:var(--accent);font-family:'Manrope',sans-serif;font-size:13px;font-weight:600;cursor:pointer;padding:0;">Скопировать</button>
+        <span id="pay-phone-display" style="font-size:18px;font-weight:700;color:var(--ink);letter-spacing:.02em;"></span>
+        <button onclick="copyPayPhone()" id="copy-phone-btn" style="background:none;border:none;color:var(--accent);font-family:'Manrope',sans-serif;font-size:13px;font-weight:600;cursor:pointer;padding:0;flex-shrink:0;margin-left:10px;">Скопировать</button>
       </div>
-      <div style="font-size:13px;color:var(--ink-soft);margin-bottom:6px;">Сумма перевода</div>
+      <div style="font-size:12px;color:var(--ink-soft);margin-bottom:6px;">Сумма перевода</div>
       <div style="display:flex;align-items:center;justify-content:space-between;background:var(--bg);border-radius:10px;padding:12px 14px;">
-        <span id="pay-amount-display" style="font-size:17px;font-weight:700;color:var(--accent);"></span>
-        <button onclick="copyPayAmount()" id="copy-amount-btn" style="background:none;border:none;color:var(--accent);font-family:'Manrope',sans-serif;font-size:13px;font-weight:600;cursor:pointer;padding:0;">Скопировать</button>
+        <span id="pay-amount-display" style="font-size:18px;font-weight:700;color:var(--accent);"></span>
+        <button onclick="copyPayAmount()" id="copy-amount-btn" style="background:none;border:none;color:var(--accent);font-family:'Manrope',sans-serif;font-size:13px;font-weight:600;cursor:pointer;padding:0;flex-shrink:0;margin-left:10px;">Скопировать</button>
       </div>
     </div>
     <button onclick="closePayModal()" style="width:100%;padding:12px;background:none;color:var(--ink-soft);border:none;font-family:'Manrope',sans-serif;font-size:14px;cursor:pointer;">
@@ -1656,14 +1657,37 @@ return `<div style="display:grid;grid-template-columns:22px 1fr auto;gap:6px;pad
       btn.onclick = openSignModal;
       document.getElementById('estimate-dot').style.display = 'inline-block';
     } else {
-      btn.textContent = '💳 Внести средства через СБП';
-      btn.onclick = mainActionClick;
+      btn.textContent = '📋 Реквизиты для оплаты';
+      btn.onclick = openReqModal;
       document.getElementById('estimate-dot').style.display = 'none';
     }
   }
 
-  function mainActionClick() {
-    window.open('https://finance.ozon.ru/apps/sbp/ozonbankpay/019d0855-4631-76d3-a55d-e67421eaf506', '_blank');
+  function openReqModal() {
+    if (!_estimateData || !_estimateData.phases) return;
+    // Берём последний подписанный этап с суммой к оплате
+    const phases = _estimateData.phases;
+    let actToPay = 0, advanceNext = 0, advanceNextPhase = null, phaseName = '';
+    for (let i = 0; i < phases.length; i++) {
+      if (phases[i].act_to_pay > 0) {
+        actToPay = phases[i].act_to_pay;
+        phaseName = phases[i].phase;
+        if (phases[i+1]) {
+          advanceNext = Math.round((phases[i+1].phase_total || 0) * (phases[i].act_advance / (phases[i].phase_total || 1)));
+          advanceNextPhase = phases[i+1].phase;
+        }
+        break;
+      }
+    }
+    const total = actToPay + advanceNext;
+    showPaymentScreen({
+      phase: phaseName || 'Текущий этап',
+      act_to_pay: actToPay,
+      advance_next: advanceNext,
+      advance_next_phase: advanceNextPhase,
+      total_to_pay: total,
+      signed_at: null
+    });
   }
 
   function openSignModal() {
@@ -1722,9 +1746,10 @@ return `<div style="display:grid;grid-template-columns:22px 1fr auto;gap:6px;pad
       if (res.ok) {
         phase.signed = true;
         closeSignModal();
+        const _signedIdx = _signPhaseIndex;
         _signPhaseIndex = null; updateMainAction(); updateActionBanner();
         // Обновляем badge этапа без перезагрузки
-        const phaseEl = document.querySelector(`#phase-rows-${_signPhaseIndex}`)?.previousElementSibling;
+        const phaseEl = document.querySelector(`#phase-rows-${_signedIdx}`)?.previousElementSibling;
         if (phaseEl) {
           const oldBadge = phaseEl.querySelector('span[style*="rgba(96,176"]');
           if (oldBadge) {
@@ -1758,8 +1783,15 @@ return `<div style="display:grid;grid-template-columns:22px 1fr auto;gap:6px;pad
 function showPaymentScreen(data) {
     const fmt = n => Number(n).toLocaleString('ru-RU') + ' ₽';
     const phone = '+79667601666'; // ← номер для перевода
-    document.getElementById('pay-phase').textContent = data.phase;
-    document.getElementById('pay-date').textContent = data.signed_at + ' · Подтверждение отправлено в Telegram';
+    const fromSign = !!data.signed_at;
+    document.getElementById('pay-phase').textContent = data.phase || '';
+    const dateEl = document.getElementById('pay-date');
+    if (fromSign) {
+      dateEl.textContent = data.signed_at + ' · Подтверждение отправлено в Telegram';
+      dateEl.style.display = 'block';
+    } else {
+      dateEl.style.display = 'none';
+    }
     document.getElementById('pay-balance').textContent = fmt(data.act_to_pay);
     const advRow = document.getElementById('pay-adv-row');
     if (data.advance_next > 0) {
