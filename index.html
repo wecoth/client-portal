@@ -1665,18 +1665,21 @@ return `<div style="display:grid;grid-template-columns:22px 1fr auto;gap:6px;pad
 
   function openReqModal() {
     if (!_estimateData || !_estimateData.phases) return;
-    // Берём последний подписанный этап с суммой к оплате
     const phases = _estimateData.phases;
     let actToPay = 0, advanceNext = 0, advanceNextPhase = null, phaseName = '';
+    // Берём последний этап у которого есть акт (act_total > 0), независимо от signed
+    let lastActIdx = -1;
     for (let i = 0; i < phases.length; i++) {
-      if (phases[i].act_to_pay > 0) {
-        actToPay = phases[i].act_to_pay;
-        phaseName = phases[i].phase;
-        if (phases[i+1]) {
-          advanceNext = Math.round((phases[i+1].phase_total || 0) * (phases[i].act_advance / (phases[i].phase_total || 1)));
-          advanceNextPhase = phases[i+1].phase;
-        }
-        break;
+      if (phases[i].act_total > 0) lastActIdx = i;
+    }
+    if (lastActIdx >= 0) {
+      const p = phases[lastActIdx];
+      actToPay = p.act_to_pay || 0;
+      phaseName = p.phase;
+      const advancePct = p.phase_total > 0 ? (p.act_advance / p.phase_total) : 0;
+      if (phases[lastActIdx + 1]) {
+        advanceNext = Math.round((phases[lastActIdx + 1].phase_total || 0) * advancePct);
+        advanceNextPhase = phases[lastActIdx + 1].phase;
       }
     }
     const total = actToPay + advanceNext;
