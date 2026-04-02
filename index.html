@@ -578,7 +578,7 @@
   <!-- PHOTOS -->
   <div class="section" id="photos-section" style="display:none">
   <div class="section-title photos-title">
-    <span><span class="icon">📸</span> Фото с объекта</span>
+    <span>Фото с объекта</span>
     <button id="photos-toggle" type="button" class="photos-toggle-btn">Развернуть</button>
   </div>
   <div id="photos-wrap" class="photos-wrap photos-collapsed">
@@ -683,8 +683,14 @@
 <div id="file-modal" class="photo-modal">
   <div style="position:absolute;top:calc(env(safe-area-inset-top, 0px) + 90px);left:10px;right:10px;display:flex;justify-content:space-between;align-items:center;gap:10px;z-index:2;">
     <div id="file-modal-title" style="color:#fff;font-size:13px;opacity:.85;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Просмотр</div>
-    <button id="file-modal-close" class="photo-modal-close" style="position:static;width:auto;height:38px;padding:0 14px;border-radius:10px;font-size:14px;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.18);color:#fff;">Закрыть</button>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span id="file-modal-counter" style="color:rgba(255,255,255,0.5);font-size:12px;display:none;"></span>
+      <button id="file-modal-close" class="photo-modal-close" style="position:static;width:auto;height:38px;padding:0 14px;border-radius:10px;font-size:14px;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.18);color:#fff;">Закрыть</button>
+    </div>
   </div>
+
+  <button id="file-modal-prev" onclick="modalNav(-1)" style="display:none;position:absolute;left:10px;top:50%;transform:translateY(-50%);width:40px;height:40px;border-radius:50%;background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.18);color:#fff;font-size:20px;cursor:pointer;z-index:3;align-items:center;justify-content:center;">‹</button>
+  <button id="file-modal-next" onclick="modalNav(1)" style="display:none;position:absolute;right:10px;top:50%;transform:translateY(-50%);width:40px;height:40px;border-radius:50%;background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.18);color:#fff;font-size:20px;cursor:pointer;z-index:3;align-items:center;justify-content:center;">›</button>
 
   <img id="file-modal-img" alt="Файл" style="display:none;" />
   <iframe id="file-modal-frame" title="Документ" style="display:none;width:96vw;height:86vh;border:0;border-radius:10px;background:#111;"></iframe>
@@ -760,6 +766,9 @@
       .replace(/'/g, '&#39;');
   }
 
+  let _photoGallery = [];
+  let _photoIndex = 0;
+
   function openFileModal(opts) {
     const modal = document.getElementById('file-modal');
     const titleEl = document.getElementById('file-modal-title');
@@ -780,12 +789,55 @@
       img.src = toLargeImage(url);
       img.style.display = 'block';
     } else {
+      _photoGallery = [];
       frame.src = toPreviewUrl(url);
       frame.style.display = 'block';
     }
 
+    updateModalNav();
     modal.classList.add('open');
     document.body.classList.add('modal-open');
+  }
+
+  function openPhotoModal(index) {
+    if (!_photoGallery.length) return;
+    _photoIndex = Math.max(0, Math.min(index, _photoGallery.length - 1));
+    const photo = _photoGallery[_photoIndex];
+    const modal = document.getElementById('file-modal');
+    const titleEl = document.getElementById('file-modal-title');
+    const img = document.getElementById('file-modal-img');
+    const frame = document.getElementById('file-modal-frame');
+    titleEl.textContent = photo.title;
+    frame.style.display = 'none';
+    frame.src = '';
+    img.src = toLargeImage(photo.url);
+    img.style.display = 'block';
+    updateModalNav();
+    modal.classList.add('open');
+    document.body.classList.add('modal-open');
+  }
+
+  function updateModalNav() {
+    const isGallery = _photoGallery.length > 1;
+    const prev = document.getElementById('file-modal-prev');
+    const next = document.getElementById('file-modal-next');
+    const counter = document.getElementById('file-modal-counter');
+    if (prev) prev.style.display = isGallery ? 'flex' : 'none';
+    if (next) next.style.display = isGallery ? 'flex' : 'none';
+    if (counter) {
+      counter.style.display = isGallery ? 'inline' : 'none';
+      counter.textContent = (_photoIndex + 1) + ' / ' + _photoGallery.length;
+    }
+    if (prev) prev.style.opacity = _photoIndex === 0 ? '0.3' : '1';
+    if (next) next.style.opacity = _photoIndex === _photoGallery.length - 1 ? '0.3' : '1';
+  }
+
+  function modalNav(dir) {
+    if (!_photoGallery.length) return;
+    const newIndex = _photoIndex + dir;
+    if (newIndex < 0 || newIndex >= _photoGallery.length) return;
+    if (window.__resetModalZoom) window.__resetModalZoom();
+    openPhotoModal(newIndex);
   }
 
   function closeFileModal() {
@@ -797,8 +849,27 @@
     if (window.__resetModalZoom) window.__resetModalZoom();
     img.src = '';
     frame.src = '';
-
   }
+
+  // Свайп для листания фото
+  (function setupModalSwipe() {
+    const modal = document.getElementById('file-modal');
+    let swipeStartX = 0;
+    let swipeStartY = 0;
+    modal.addEventListener('touchstart', e => {
+      if (e.touches.length !== 1) return;
+      swipeStartX = e.touches[0].clientX;
+      swipeStartY = e.touches[0].clientY;
+    }, { passive: true });
+    modal.addEventListener('touchend', e => {
+      if (!_photoGallery.length) return;
+      const dx = e.changedTouches[0].clientX - swipeStartX;
+      const dy = e.changedTouches[0].clientY - swipeStartY;
+      if (Math.abs(dx) < 40 || Math.abs(dy) > Math.abs(dx)) return;
+      if (window.__scale && window.__scale > 1) return;
+      modalNav(dx < 0 ? 1 : -1);
+    }, { passive: true });
+  })();
 // Zoom only inside modal image (doesn't affect whole page)
 (function setupModalImageZoom() {
   const modal = document.getElementById('file-modal');
@@ -950,6 +1021,8 @@
 
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') closeFileModal();
+    if (e.key === 'ArrowLeft') modalNav(-1);
+    if (e.key === 'ArrowRight') modalNav(1);
   });
 
   function render(data, token) {
@@ -1015,24 +1088,20 @@
       const wrap = document.getElementById('photos-wrap');
       const toggleBtn = document.getElementById('photos-toggle');
 
-      grid.innerHTML = photos.map(f => {
-        const thumb = escapeHtml(f.thumb_url || f.view_url || '');
-        const large = escapeHtml(f.full_url || f.thumb_url || f.view_url || '');
-        const title = escapeHtml(f.name || 'Фото');
+      _photoGallery = photos.map(f => ({
+        url: f.full_url || f.thumb_url || f.view_url || '',
+        title: f.name || 'Фото'
+      }));
 
-        return '<button type="button" data-url="' + large + '" data-title="' + title + '">' +
+      grid.innerHTML = photos.map((f, i) => {
+        const thumb = escapeHtml(f.thumb_url || f.view_url || '');
+        return '<button type="button" data-index="' + i + '">' +
           '<img src="' + thumb + '" loading="lazy" />' +
           '</button>';
       }).join('');
 
-      grid.querySelectorAll('[data-url]').forEach(el => {
-        el.onclick = () => {
-          openFileModal({
-            type: 'image',
-            title: el.dataset.title || 'Фото',
-            url: el.dataset.url || ''
-          });
-        };
+      grid.querySelectorAll('[data-index]').forEach(el => {
+        el.onclick = () => openPhotoModal(parseInt(el.dataset.index));
       });
 
       // если фото мало — не нужен toggle/градиент
