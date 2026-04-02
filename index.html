@@ -1724,13 +1724,14 @@ return `<div style="display:grid;grid-template-columns:22px 1fr auto;gap:6px;pad
             oldBadge.textContent = 'Закрыт';
           }
         }
+        showPaymentScreen({
           phase: payload.phase,
-  act_to_pay: payload.act_to_pay,
-  advance_next: payload.advance_next,
-  advance_next_phase: payload.advance_next_phase,
-  total_to_pay: payload.total_to_pay,
-  signed_at: payload.signed_at
-});
+          act_to_pay: payload.act_to_pay,
+          advance_next: payload.advance_next,
+          advance_next_phase: payload.advance_next_phase,
+          total_to_pay: payload.total_to_pay,
+          signed_at: payload.signed_at
+        });
       } else {
         btn.disabled = false;
         btnText.textContent = 'Подтвердить';
