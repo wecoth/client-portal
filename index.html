@@ -1344,9 +1344,11 @@ const title = escapeHtml(f.name || 'Чек');
   const user = initData?.user || {};
   const token = getToken();
 
-  // Если есть пользователь Telegram — собираем все доступные поля
+  // Флаг, чтобы знать, была ли попытка через Telegram
+  let triedTelegram = false;
+
   if (user && user.id) {
-    // Формируем объект со всеми данными пользователя
+    triedTelegram = true;
     const userData = {
       tg_id: user.id,
       first_name: user.first_name || '',
@@ -1356,12 +1358,10 @@ const title = escapeHtml(f.name || 'Чек');
       is_premium: user.is_premium || false,
       allows_write_to_pm: user.allows_write_to_pm || false,
       photo_url: user.photo_url || '',
-      // Добавляем также raw initData, если нужно для проверки подписи
       raw_init_data: initData?.auth_date ? JSON.stringify(initData) : ''
     };
 
     try {
-      // Используем POST, чтобы передать любые объёмы данных
       const res = await fetch('https://assistcloudai.xyz/webhook/portal-by-tgid', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1377,16 +1377,12 @@ const title = escapeHtml(f.name || 'Чек');
       render(data, token || data.portal_token);
       return;
     } catch (e) {
-      // Если POST не удался — можно попробовать GET с токеном, если есть
-      if (token) {
-        // fallback на токен из URL
-      } else {
-        throw e;
-      }
+      // Просто логируем ошибку и продолжаем (попробуем по токену, если есть)
+      console.warn('Telegram user auth failed:', e);
     }
   }
 
-  // Если нет пользователя Telegram или ошибка — пробуем по токену из URL
+  // Пробуем по токену из URL
   if (token) {
     try {
       const res = await fetch(API_BASE + '?token=' + encodeURIComponent(token));
@@ -1399,10 +1395,12 @@ const title = escapeHtml(f.name || 'Чек');
       document.getElementById('main').style.display = 'block';
       render(data, token);
       return;
-    } catch (e) {}
+    } catch (e) {
+      console.warn('Token auth failed:', e);
+    }
   }
 
-  // Всё плохо — показываем ошибку
+  // Если ничего не сработало — показываем ошибку
   document.getElementById('loader').style.display = 'none';
   document.getElementById('error').style.display = 'flex';
 }
