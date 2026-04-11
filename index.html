@@ -1339,34 +1339,23 @@ const title = escapeHtml(f.name || 'Чек');
   }
 
   async function init() {
-  const tg = window.Telegram?.WebApp;
-  const initData = tg?.initDataUnsafe;
-  const user = initData?.user || {};
-  const token = getToken();
+    const tg = window.Telegram?.WebApp;
+    const tgId = tg?.initDataUnsafe?.user?.id;
+    const token = getToken();
 
-  // Флаг, чтобы знать, была ли попытка через Telegram
-  let triedTelegram = false;
-
-  if (user && user.id) {
-    triedTelegram = true;
-    const userData = {
-      tg_id: user.id,
-      first_name: user.first_name || '',
-      last_name: user.last_name || '',
-      username: user.username || '',
-      language_code: user.language_code || '',
-      is_premium: user.is_premium || false,
-      allows_write_to_pm: user.allows_write_to_pm || false,
-      photo_url: user.photo_url || '',
-      raw_init_data: initData?.auth_date ? JSON.stringify(initData) : ''
-    };
+    let apiUrl;
+    if (tgId) {
+      apiUrl = 'https://assistcloudai.xyz/webhook/portal-by-tgid?tg_id=' + encodeURIComponent(tgId);
+    } else if (token) {
+      apiUrl = API_BASE + '?token=' + encodeURIComponent(token);
+    } else {
+      document.getElementById('loader').style.display = 'none';
+      document.getElementById('error').style.display = 'flex';
+      return;
+    }
 
     try {
-      const res = await fetch('https://assistcloudai.xyz/webhook/portal-by-tgid', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(userData)
-      });
+      const res = await fetch(apiUrl);
       if (!res.ok) throw new Error('not found');
       const data = await res.json();
       if (!data.name || data.error) throw new Error('empty');
@@ -1375,35 +1364,11 @@ const title = escapeHtml(f.name || 'Чек');
       document.getElementById('error').style.display = 'none';
       document.getElementById('main').style.display = 'block';
       render(data, token || data.portal_token);
-      return;
     } catch (e) {
-      // Просто логируем ошибку и продолжаем (попробуем по токену, если есть)
-      console.warn('Telegram user auth failed:', e);
-    }
-  }
-
-  // Пробуем по токену из URL
-  if (token) {
-    try {
-      const res = await fetch(API_BASE + '?token=' + encodeURIComponent(token));
-      if (!res.ok) throw new Error('not found');
-      const data = await res.json();
-      if (!data.name || data.error) throw new Error('empty');
-
       document.getElementById('loader').style.display = 'none';
-      document.getElementById('error').style.display = 'none';
-      document.getElementById('main').style.display = 'block';
-      render(data, token);
-      return;
-    } catch (e) {
-      console.warn('Token auth failed:', e);
+      document.getElementById('error').style.display = 'flex';
     }
   }
-
-  // Если ничего не сработало — показываем ошибку
-  document.getElementById('loader').style.display = 'none';
-  document.getElementById('error').style.display = 'flex';
-}
 
   init();
 
