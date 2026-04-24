@@ -1,1888 +1,1880 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Мой объект</title>
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <script>
-    function switchTab(tab) {
-  document.getElementById('tab-content-main').style.display = tab === 'main' ? 'block' : 'none';
-  document.getElementById('tab-content-estimate').style.display = tab === 'estimate' ? 'block' : 'none';
-  document.getElementById('tab-main').style.color = tab === 'main' ? 'var(--accent)' : 'var(--muted)';
-  document.getElementById('tab-estimate').style.color = tab === 'estimate' ? 'var(--accent)' : 'var(--muted)';
-}
-  window.Telegram?.WebApp?.expand();
-  window.Telegram?.WebApp?.requestFullscreen?.();
-</script>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --bg: #13151f;
-    --surface: #1e2130;
-    --surface2: #252838;
-    --ink: #eef0f8;
-    --ink-soft: #8b8fa8;
-    --accent: #60b0ff;
-    --accent-light: rgba(96,176,255,0.15);
-    --border: rgba(255,255,255,0.09);
-    --success: #4ade80;
-    --muted: #5a5e75;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: 'Manrope', sans-serif;
-    background: var(--bg);
-    color: var(--ink);
-    font-size: 15px;
-    line-height: 1.6;
-    min-height: 100vh;
-  }
-  
-  body.modal-open {
-    overflow: hidden;
-  }
-  #file-modal {
-    touch-action: pan-x pan-y;
-  }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Мой объект</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script>
+        function switchTab(tab) {
+            document.getElementById('tab-content-main').style.display = tab === 'main' ? 'block' : 'none';
+            document.getElementById('tab-content-estimate').style.display = tab === 'estimate' ? 'block' : 'none';
+            document.getElementById('tab-main').style.color = tab === 'main' ? 'var(--accent)' : 'var(--muted)';
+            document.getElementById('tab-estimate').style.color = tab === 'estimate' ? 'var(--accent)' : 'var(--muted)';
+        }
+        window.Telegram?.WebApp?.expand();
+        window.Telegram?.WebApp?.requestFullscreen?.();
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #13151f;
+            --surface: #1e2130;
+            --surface2: #252838;
+            --ink: #eef0f8;
+            --ink-soft: #8b8fa8;
+            --accent: #60b0ff;
+            --accent-light: rgba(96,176,255,0.15);
+            --border: rgba(255,255,255,0.09);
+            --success: #4ade80;
+            --muted: #5a5e75;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Manrope', sans-serif;
+            background: var(--bg);
+            color: var(--ink);
+            font-size: 15px;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        
+        body.modal-open {
+            overflow: hidden;
+        }
+        #file-modal {
+            touch-action: pan-x pan-y;
+        }
 
+        /* LOADER */
+        .loader {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            gap: 16px;
+            color: var(--muted);
+            font-size: 14px;
+        }
+        .loader-ring {
+            width: 40px; height: 40px;
+            border: 3px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* LOADER */
-  .loader {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
-    gap: 16px;
-    color: var(--muted);
-    font-size: 14px;
-  }
-  .loader-ring {
-    width: 40px; height: 40px;
-    border: 3px solid var(--border);
-    border-top-color: var(--accent);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
+        /* ERROR */
+        .error {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            gap: 12px;
+            padding: 32px;
+            text-align: center;
+        }
+        .error-icon { font-size: 40px; }
+        .error-title { font-family: 'Manrope', serif; font-size: 22px; font-weight: 600; }
+        .error-text { font-size: 14px; color: var(--ink-soft); }
 
-  /* ERROR */
-  .error {
-    display: none;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
-    gap: 12px;
-    padding: 32px;
-    text-align: center;
-  }
-  .error-icon { font-size: 40px; }
-  .error-title { font-family: 'Manrope', serif; font-size: 22px; font-weight: 600; }
-  .error-text { font-size: 14px; color: var(--ink-soft); }
+        /* MAIN */
+        .main { display: none; }
 
-  /* MAIN */
-  .main { display: none; }
+        /* HEADER */
+        .header {
+            background: linear-gradient(160deg, #1e2d4a 0%, #162038 55%, #13151f 100%);
+            color: #eef0f8;
+            padding: 116px 18px 20px;
+            min-height: 220px;
+            position: relative;
+            overflow: hidden;
+        }
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -60px; right: -60px;
+            width: 200px; height: 200px;
+            border-radius: 50%;
+            background: rgba(0,100,200,0.18);
+        }
+        .header-label {
+            font-size: 11px;
+            font-weight: 500;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.35);
+            margin-bottom: 10px;
+            min-height: 28px;
+            display: flex;
+            align-items: center;
+            margin-top: 6px;
+        }
+        .header-title {
+            font-family: 'Manrope', serif;
+            font-size: 18px;
+            font-weight: 700;
+            line-height: 1.2;
+            margin-top: 20px;   /* было 10px, стало ниже */
+            margin-bottom: 10px;
+            padding-right: 0;
+            white-space: normal;
+            overflow: visible;
+            text-overflow: clip;
+        }
 
-  /* HEADER */
-  .header {
-    background: linear-gradient(160deg, #1e2d4a 0%, #162038 55%, #13151f 100%);
-    color: #eef0f8;
-    padding: 116px 18px 20px;
-    min-height: 220px;
-    position: relative;
-    overflow: hidden;
-  }
-  .header::before {
-    content: '';
-    position: absolute;
-    top: -60px; right: -60px;
-    width: 200px; height: 200px;
-    border-radius: 50%;
-    background: rgba(0,100,200,0.18);
-  }
-  .header-label {
-    font-size: 11px;
-    font-weight: 500;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: rgba(255,255,255,0.35);
-    margin-bottom: 10px;
-    min-height: 28px;
-    display: flex;
-    align-items: center;
-    margin-top: 6px;
-  }
-  .header-title {
-  font-family: 'Manrope', serif;
-  font-size: 18px;
-  font-weight: 700;
-  line-height: 1.2;
-  margin-top: 20px;   /* было 10px, стало ниже */
-  margin-bottom: 10px;
-  padding-right: 0;
-  white-space: normal;
-  overflow: visible;
-  text-overflow: clip;
-}
+        .status-pill {
+            position: absolute;
+            top: calc(env(safe-area-inset-top, 0px) + 116px);
+            right: 16px;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            background: rgba(0,120,215,0.25);
+            border: 1px solid rgba(0,120,215,0.5);
+            color: #60b0ff;
+            padding: 6px 12px;
+            border-radius: 100px;
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 0.04em;
+            z-index: 2;
+        }
 
-  .status-pill {
-  position: absolute;
-  top: calc(env(safe-area-inset-top, 0px) + 116px);
-  right: 16px;
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  background: rgba(0,120,215,0.25);
-  border: 1px solid rgba(0,120,215,0.5);
-  color: #60b0ff;
-  padding: 6px 12px;
-  border-radius: 100px;
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.04em;
-  z-index: 2;
-}
+        .status-dot {
+            width: 7px; height: 7px;
+            border-radius: 50%;
+            background: #60b0ff;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
 
-  .status-dot {
-    width: 7px; height: 7px;
-    border-radius: 50%;
-    background: #60b0ff;
-    animation: pulse 2s infinite;
-  }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+        /* PROGRESS */
+        .progress-section {
+            background: var(--surface);
+            padding: 14px 20px 18px;
+            border-radius: 0 0 16px 16px;
+            margin: 0 12px 0;
+            border: 0.5px solid var(--border);
+            border-top: none;
+        }
+        .progress-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 12px;
+        }
+        .progress-label {
+            font-size: 12px;
+            color: var(--ink-soft);
+            font-weight: 500;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+        .progress-pct {
+            font-family: 'Manrope', serif;
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--accent);
+        }
+        .progress-track {
+            height: 4px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: var(--accent);
+            border-radius: 2px;
+            transition: width 1.2s cubic-bezier(0.4,0,0.2,1);
+            width: 0%;
+        }
+        .progress-dates {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+            font-size: 12px;
+            color: var(--muted);
+        }
 
-  /* PROGRESS */
-  .progress-section {
-    background: var(--surface);
-    padding: 14px 20px 18px;
-    border-radius: 0 0 16px 16px;
-    margin: 0 12px 0;
-    border: 0.5px solid var(--border);
-    border-top: none;
-  }
-  .progress-meta {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    margin-bottom: 12px;
-  }
-  .progress-label {
-    font-size: 12px;
-    color: var(--ink-soft);
-    font-weight: 500;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-  }
-  .progress-pct {
-    font-family: 'Manrope', serif;
-    font-size: 22px;
-    font-weight: 600;
-    color: var(--accent);
-  }
-  .progress-track {
-    height: 4px;
-    background: rgba(255,255,255,0.1);
-    border-radius: 2px;
-    overflow: hidden;
-  }
-  .progress-fill {
-    height: 100%;
-    background: var(--accent);
-    border-radius: 2px;
-    transition: width 1.2s cubic-bezier(0.4,0,0.2,1);
-    width: 0%;
-  }
-  .progress-dates {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 8px;
-    font-size: 12px;
-    color: var(--muted);
-  }
+        /* SECTIONS */
+        .section {
+            padding: 18px 20px;
+            border-bottom: none;
+            border-radius: 16px;
+            background: var(--surface);
+            border: 0.5px solid var(--border);
+            margin: 10px 12px 0;
+            animation: fadeUp 0.5s ease both;
+        }
 
-  /* SECTIONS */
-  .section {
-    padding: 18px 20px;
-    border-bottom: none;
-    border-radius: 16px;
-    background: var(--surface);
-    border: 0.5px solid var(--border);
-    margin: 10px 12px 0;
-    animation: fadeUp 0.5s ease both;
-  }
+        .dates-section {
+            margin: 6px 12px 0;
+            border: 0.5px solid var(--border) !important;
+            border-bottom: none !important;
+            border-radius: 16px 16px 0 0;
+            padding: 18px 20px 14px;
+        }
 
-  .dates-section {
-    margin: 6px 12px 0;
-    border: 0.5px solid var(--border) !important;
-    border-bottom: none !important;
-    border-radius: 16px 16px 0 0;
-    padding: 18px 20px 14px;
-  }
+        .section-title {
+            font-family: 'Manrope', serif;
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .section-title .icon { font-size: 16px; opacity: 0.6; }
+        @keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
 
-  .section-title {
-    font-family: 'Manrope', serif;
-    font-size: 20px;
-    font-weight: 600;
-    margin-bottom: 16px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .section-title .icon { font-size: 16px; opacity: 0.6; }
-  @keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+        .photos-title {
+            justify-content: space-between;
+            align-items: center;
+        }
 
-.photos-title {
-  justify-content: space-between;
-  align-items: center;
-}
+        .photos-toggle-btn {
+            border: 0.5px solid var(--border);
+            background: rgba(255,255,255,0.06);
+            border-radius: 8px;
+            height: 32px;
+            min-width: 108px;
+            padding: 0 14px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--ink-soft);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+            text-align: center;
+        }
 
-.photos-toggle-btn {
-  border: 0.5px solid var(--border);
-  background: rgba(255,255,255,0.06);
-  border-radius: 8px;
-  height: 32px;
-  min-width: 108px;
-  padding: 0 14px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--ink-soft);
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  line-height: 1;
-  text-align: center;
-}
+        .photos-wrap {
+            position: relative;
+            transition: max-height .25s ease;
+            background: var(--surface);
+        }
 
+        .photos-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-auto-rows: 118px;
+            gap: 8px;
+        }
 
-.photos-wrap {
-  position: relative;
-  transition: max-height .25s ease;
-  background: var(--surface);
-}
+        .photos-grid button {
+            border: 0;
+            padding: 0;
+            border-radius: 10px;
+            overflow: hidden;
+            background: rgba(255,255,255,0.08);
+            cursor: pointer;
+        }
 
-.photos-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-auto-rows: 118px;
-  gap: 8px;
-}
+        .photos-grid img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
 
-.photos-grid button {
-  border: 0;
-  padding: 0;
-  border-radius: 10px;
-  overflow: hidden;
-  background: rgba(255,255,255,0.08);
-  cursor: pointer;
-}
+        /* 1 ряд + половина 2-го */
+        .photos-collapsed {
+            max-height: calc(118px * 1.5 + 8px * 1);
+            overflow: hidden;
+        }
 
-.photos-grid img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
+        .photos-collapsed::after {
+            content: '';
+            position: absolute;
+            left: 0; right: 0; bottom: 0;
+            height: 50px;
+            pointer-events: none;
+            background: linear-gradient(to bottom, rgba(30,33,48,0) 0%, rgba(30,33,48,0.85) 80%, var(--surface) 100%);
+        }
 
-/* 1 ряд + половина 2-го */
-.photos-collapsed {
-  max-height: calc(118px * 1.5 + 8px * 1);
-  overflow: hidden;
-}
+        .photos-collapsed-list {
+            max-height: 92px;
+            overflow: hidden;
+            position: relative;
+            background: var(--surface);
+        }
 
-.photos-collapsed::after {
-  content: '';
-  position: absolute;
-  left: 0; right: 0; bottom: 0;
-  height: 50px;
-  pointer-events: none;
-  background: linear-gradient(to bottom, rgba(30,33,48,0) 0%, rgba(30,33,48,0.85) 80%, var(--surface) 100%);
-}
+        .photos-collapsed-list::after {
+            content: '';
+            position: absolute;
+            left: 0; right: 0; bottom: 0;
+            height: 50px;
+            pointer-events: none;
+            background: linear-gradient(to bottom, rgba(30,33,48,0) 0%, rgba(30,33,48,0.85) 80%, var(--surface) 100%);
+        }
+        
+        /* FINANCES */
+        .finance-hero {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .finance-card {
+            background: var(--bg);
+            border-radius: 12px;
+            padding: 16px;
+        }
+        .finance-card.accent { background: var(--accent); color: white; }
+        .finance-card-label {
+            font-size: 11px;
+            font-weight: 500;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: var(--ink-soft);
+            margin-bottom: 6px;
+        }
+        .finance-card.accent .finance-card-label { color: rgba(255,255,255,0.7); }
+        .finance-card-amount {
+            font-family: 'Manrope', serif;
+            font-size: 24px;
+            font-weight: 600;
+            line-height: 1;
+        }
+        .transactions { display: flex; flex-direction: column; }
+        .tx {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .tx:last-child { border-bottom: none; }
+        .tx-name { font-size: 14px; color: var(--ink); }
+        .tx-date { font-size: 12px; color: var(--muted); margin-top: 2px; }
+        .tx-amount {
+            font-family: 'Manrope', serif;
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--success);
+        }
 
-  .photos-collapsed-list {
-  max-height: 92px;
-  overflow: hidden;
-  position: relative;
-  background: var(--surface);
-}
+        /* DATES */
+        .dates-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        .date-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            padding: 14px;
+            border: 0.5px solid var(--border);
+        }
+        .date-card-label {
+            font-size: 11px;
+            font-weight: 500;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: var(--ink-soft);
+            margin-bottom: 6px;
+        }
+        .date-card-value {
+            font-family: 'Manrope', serif;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--ink);
+        }
+        .date-card-sub {
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 4px;
+            display: none;
+        }
 
-.photos-collapsed-list::after {
-  content: '';
-  position: absolute;
-  left: 0; right: 0; bottom: 0;
-  height: 50px;
-  pointer-events: none;
-  background: linear-gradient(to bottom, rgba(30,33,48,0) 0%, rgba(30,33,48,0.85) 80%, var(--surface) 100%);
-}
-  
-  /* FINANCES */
-  .finance-hero {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    margin-bottom: 20px;
-  }
-  .finance-card {
-    background: var(--bg);
-    border-radius: 12px;
-    padding: 16px;
-  }
-  .finance-card.accent { background: var(--accent); color: white; }
-  .finance-card-label {
-    font-size: 11px;
-    font-weight: 500;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--ink-soft);
-    margin-bottom: 6px;
-  }
-  .finance-card.accent .finance-card-label { color: rgba(255,255,255,0.7); }
-  .finance-card-amount {
-    font-family: 'Manrope', serif;
-    font-size: 24px;
-    font-weight: 600;
-    line-height: 1;
-  }
-  .transactions { display: flex; flex-direction: column; }
-  .tx {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 0;
-    border-bottom: 1px solid var(--border);
-  }
-  .tx:last-child { border-bottom: none; }
-  .tx-name { font-size: 14px; color: var(--ink); }
-  .tx-date { font-size: 12px; color: var(--muted); margin-top: 2px; }
-  .tx-amount {
-    font-family: 'Manrope', serif;
-    font-size: 18px;
-    font-weight: 600;
-    color: var(--success);
-  }
+        /* MANAGER */
+        .manager-card {
+            margin: 10px 12px 0;
+            background: var(--surface);
+            border: 0.5px solid var(--border);
+            color: var(--ink);
+            border-radius: 16px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .manager-avatar {
+            width: 48px; height: 48px;
+            border-radius: 50%;
+            background: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Manrope', serif;
+            font-size: 20px;
+            font-weight: 600;
+            color: white;
+            flex-shrink: 0;
+        }
+        .manager-label {
+            font-size: 11px;
+            color: var(--muted);
+            text-transform: none;
+            letter-spacing: 0.08em;
+            font-weight: 500;
+        }
+        .manager-name { font-size: 16px; font-weight: 500; margin-top: 2px; color: var(--ink); }
+        .manager-btn {
+            margin-left: auto;
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            font-family: 'Manrope', sans-serif;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: opacity 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .manager-btn:hover { opacity: 0.85; }
+        .last-update {
+            text-align: center;
+            font-size: 12px;
+            color: var(--muted);
+            padding: 16px 16px 32px;
+        }
 
-  /* DATES */
-  .dates-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-  }
-  .date-card {
-    background: rgba(255,255,255,0.05);
-    border-radius: 10px;
-    padding: 14px;
-    border: 0.5px solid var(--border);
-  }
-  .date-card-label {
-    font-size: 11px;
-    font-weight: 500;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--ink-soft);
-    margin-bottom: 6px;
-  }
-  .date-card-value {
-    font-family: 'Manrope', serif;
-    font-size: 15px;
-    font-weight: 600;
-    color: var(--ink);
-  }
-  .date-card-sub {
-    font-size: 12px;
-    color: var(--muted);
-    margin-top: 4px;
-    display: none;
-  }
+        /* NO DATA */
+        .empty {
+            text-align: center;
+            padding: 24px;
+            color: var(--muted);
+            font-size: 14px;
+        }
+        .photo-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,.86);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            padding: 12px;
+        }
+        .photo-modal.open { display: flex; }
+        .photo-modal img {
+            max-width: 96vw;
+            max-height: 86vh;
+            border-radius: 10px;
+            object-fit: contain;
+            background: #111;
+        }
+        .photo-modal-close {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(255,255,255,.15);
+            color: #fff;
+            font-size: 22px;
+            cursor: pointer;
+        }
 
-  /* MANAGER */
-  .manager-card {
-    margin: 10px 12px 0;
-    background: var(--surface);
-    border: 0.5px solid var(--border);
-    color: var(--ink);
-    border-radius: 16px;
-    padding: 20px;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-  }
-  .manager-avatar {
-    width: 48px; height: 48px;
-    border-radius: 50%;
-    background: var(--accent);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: 'Manrope', serif;
-    font-size: 20px;
-    font-weight: 600;
-    color: white;
-    flex-shrink: 0;
-  }
-  .manager-label {
-    font-size: 11px;
-    color: var(--muted);
-    text-transform: none;
-    letter-spacing: 0.08em;
-    font-weight: 500;
-  }
-  .manager-name { font-size: 16px; font-weight: 500; margin-top: 2px; color: var(--ink); }
-  .manager-btn {
-    margin-left: auto;
-    background: var(--accent);
-    color: white;
-    border: none;
-    padding: 10px 16px;
-    border-radius: 8px;
-    font-size: 13px;
-    font-weight: 600;
-    font-family: 'Manrope', sans-serif;
-    cursor: pointer;
-    flex-shrink: 0;
-    transition: opacity 0.2s;
-    text-decoration: none;
-    display: inline-block;
-  }
-  .manager-btn:hover { opacity: 0.85; }
-  .last-update {
-    text-align: center;
-    font-size: 12px;
-    color: var(--muted);
-    padding: 16px 16px 32px;
-  }
-
-  /* NO DATA */
-  .empty {
-    text-align: center;
-    padding: 24px;
-    color: var(--muted);
-    font-size: 14px;
-  }
-    .photo-modal {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,.86);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 9999;
-    padding: 12px;
-  }
-  .photo-modal.open { display: flex; }
-  .photo-modal img {
-    max-width: 96vw;
-    max-height: 86vh;
-    border-radius: 10px;
-    object-fit: contain;
-    background: #111;
-  }
-  .photo-modal-close {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    width: 38px;
-    height: 38px;
-    border-radius: 50%;
-    border: none;
-    background: rgba(255,255,255,.15);
-    color: #fff;
-    font-size: 22px;
-    cursor: pointer;
-  }
-
-</style>
+    </style>
 </head>
 <body>
 
 <!-- LOADER -->
 <div class="loader" id="loader">
-  <div class="loader-ring"></div>
-  <span>Загружаем данные объекта...</span>
+    <div class="loader-ring"></div>
+    <span>Загружаем данные объекта...</span>
 </div>
 
 <!-- ERROR -->
 <div class="error" id="error">
-  <div class="error-icon">🔍</div>
-  <div class="error-title">Объект не найден</div>
-  <div class="error-text">Проверьте ссылку или обратитесь к вашему прорабу</div>
+    <div class="error-icon">🔍</div>
+    <div class="error-title">Объект не найден</div>
+    <div class="error-text">Проверьте ссылку или обратитесь к вашему прорабу</div>
 </div>
 
 <!-- MAIN CONTENT -->
 <div class="main" id="main" style="padding-bottom:70px;background:var(--bg);">
-<div id="tab-content-main" style="background:var(--bg);padding-bottom:12px;">
-  
-  <div class="header">
-    <div class="header-label">Ваш объект</div>
-    <div class="header-title" id="header-title">—</div>
-  <div id="header-stage" style="margin-top:8px;margin-bottom:10px;color:#c9c3bc;font-size:14px;font-weight:500;line-height:1.35;white-space:normal;overflow:visible;text-overflow:clip;">Текущий этап: —</div>
+    <div id="tab-content-main" style="background:var(--bg);padding-bottom:12px;">
+        
+        <div class="header">
+            <div class="header-label">Ваш объект</div>
+            <div class="header-title" id="header-title">—</div>
+            <div id="header-stage" style="margin-top:8px;margin-bottom:10px;color:#c9c3bc;font-size:14px;font-weight:500;line-height:1.35;white-space:normal;overflow:visible;text-overflow:clip;">Текущий этап: —</div>
+            <div class="status-pill">
+                <div class="status-dot"></div>
+                <span id="status-text">В работе</span>
+            </div>
+        </div>
 
-    <div class="status-pill">
-      <div class="status-dot"></div>
-      <span id="status-text">В работе</span>
-    </div>
-  </div>
+        <!-- DATES -->
+        <div class="section dates-section">
+            <div class="dates-grid">
+                <div class="date-card">
+                    <div class="date-card-label">Начало работ</div>
+                    <div class="date-card-value" id="date-start">—</div>
+                    <div class="date-card-sub" id="days-passed">—</div>
+                </div>
+                <div class="date-card">
+                    <div class="date-card-label">Завершение</div>
+                    <div class="date-card-value" id="date-end">—</div>
+                    <div class="date-card-sub" id="days-left">—</div>
+                </div>
+            </div>
+        </div>
 
-  <!-- DATES -->
-  <div class="section dates-section">
-    <div class="dates-grid">
-      <div class="date-card">
-        <div class="date-card-label">Начало работ</div>
-        <div class="date-card-value" id="date-start">—</div>
-        <div class="date-card-sub" id="days-passed">—</div>
-      </div>
-      <div class="date-card">
-        <div class="date-card-label">Завершение</div>
-        <div class="date-card-value" id="date-end">—</div>
-        <div class="date-card-sub" id="days-left">—</div>
-      </div>
-    </div>
-  </div>
+        <div class="progress-section">
+            <div class="progress-meta">
+                <span class="progress-label">Прогресс по срокам</span>
+                <span class="progress-pct" id="progress-pct">—</span>
+            </div>
+            <div class="progress-track">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+            <div class="progress-dates">
+                <span id="date-start-label">—</span>
+                <span id="date-end-label">—</span>
+            </div>
+        </div>
 
-  <div class="progress-section">
-    <div class="progress-meta">
-      <span class="progress-label">Прогресс по срокам</span>
-      <span class="progress-pct" id="progress-pct">—</span>
-    </div>
-    <div class="progress-track">
-      <div class="progress-fill" id="progress-fill"></div>
-    </div>
-    <div class="progress-dates">
-      <span id="date-start-label">—</span>
-      <span id="date-end-label">—</span>
-    </div>
-  </div>
+        <!-- FINANCES & PAYMENT (скрытый, оставляем для совместимости) -->
+        <div id="total-income" style="display:none;"></div>
+        <div id="balance" style="display:none;"></div>
+        <div id="transactions" style="display:none;"></div>
+        
+        <!-- PHOTOS -->
+        <div class="section" id="photos-section" style="display:none">
+            <div class="section-title photos-title">
+                <span>Фото с объекта</span>
+                <button id="photos-toggle" type="button" class="photos-toggle-btn">Развернуть</button>
+            </div>
+            <div id="photos-wrap" class="photos-wrap photos-collapsed">
+                <div id="photos-grid" class="photos-grid"></div>
+            </div>
+        </div>
 
-<!-- FINANCES & PAYMENT (скрытый, оставляем для совместимости) -->
-<div id="total-income" style="display:none;"></div>
-<div id="balance" style="display:none;"></div>
-<div id="transactions" style="display:none;"></div>
-  
+        <!-- DOCUMENTS -->
+        <div class="section" id="docs-section" style="display:none">
+            <div class="section-title photos-title">
+                <span>Документы</span>
+                <button id="docs-toggle" type="button" class="photos-toggle-btn">Развернуть</button>
+            </div>
+            <div id="docs-wrap" class="photos-wrap photos-collapsed-list">
+                <div id="docs-list" style="display:flex;flex-direction:column;gap:8px;"></div>
+            </div>
+        </div>
+
+        <!-- RECEIPTS -->
+        <div class="section" id="receipts-section" style="display:none">
+            <div class="section-title photos-title">
+                <span>Чеки</span>
+                <button id="receipts-toggle" type="button" class="photos-toggle-btn">Развернуть</button>
+            </div>
+            <div id="receipts-wrap" class="photos-wrap photos-collapsed-list">
+                <div id="receipts-list" style="display:flex;flex-direction:column;gap:8px;"></div>
+            </div>
+        </div>
+
+        <!-- MANAGER -->
+        <div class="manager-card">
+            <div>
+                <div class="manager-label">Быстрый переход</div>
+                <div class="manager-name" id="manager-name">Чат в Telegram</div>
+            </div>
+            <a class="manager-btn" id="manager-link" href="#">Перейти</a>
+        </div>
+
+        <div class="last-update" id="last-update">Данные не обновляются автоматически, обновите страницу самостоятельно</div>
+
+    </div><!-- /tab-content-main -->
+
+    <div id="tab-content-estimate" style="display:none;padding:100px 16px 70px;background:var(--bg);">
+        
+        <div id="est-loading" style="text-align:center;padding:40px 0;color:var(--muted);font-size:14px;">Загружаем смету...</div>
+        <div id="est-error" style="display:none;text-align:center;padding:40px 0;color:var(--muted);font-size:14px;">Смета не найдена</div>
+
+        <div id="est-content" style="display:none;">
+            <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:16px;padding:20px;margin-bottom:12px;">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;">
+                    <div>
+                        <div style="font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Внесено</div>
+                        <div id="est-paid-total" style="font-size:24px;font-weight:700;letter-spacing:-.02em;color:#60b0ff;">—</div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Итого по смете</div>
+                        <div id="est-grand-total" style="font-size:24px;font-weight:700;letter-spacing:-.02em;color:var(--ink);">—</div>
+                    </div>
+                </div>
+                <div style="height:4px;background:rgba(255,255,255,0.1);border-radius:2px;margin-bottom:16px;">
+                    <div id="est-paid-bar" style="height:100%;background:#60b0ff;border-radius:2px;width:0%;transition:width 1s ease;"></div>
+                </div>
+            </div>
+            <div id="est-phases"></div>
+            <button id="main-action-btn" onclick="mainActionClick()" style="width:100%;padding:14px;background:var(--accent);color:#fff;border:none;border-radius:12px;font-family:'Manrope',sans-serif;font-size:15px;font-weight:700;cursor:pointer;margin-top:8px;">
+                💳 Внести средства через СБП
+            </button>
+        </div>
+
+    </div>
+
+</div><!-- /main -->
+
+<!-- MODALS (fixed, independent of tabs) -->
 <!-- ACTION ALERT (iOS-style) -->
 <div id="action-alert-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:300;align-items:center;justify-content:center;padding:32px;">
-  <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:20px;width:100%;max-width:320px;overflow:hidden;">
-    <div style="padding:24px 20px 16px;text-align:center;">
-      <div style="font-size:17px;font-weight:700;color:var(--ink);margin-bottom:6px;" id="alert-title">Этап №2</div>
-      <div style="font-size:14px;color:var(--ink-soft);line-height:1.5;">Акт выполненных работ ожидает вашего подписания</div>
+    <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:20px;width:100%;max-width:320px;overflow:hidden;">
+        <div style="padding:24px 20px 16px;text-align:center;">
+            <div style="font-size:17px;font-weight:700;color:var(--ink);margin-bottom:6px;" id="alert-title">Этап №2</div>
+            <div style="font-size:14px;color:var(--ink-soft);line-height:1.5;">Акт выполненных работ ожидает вашего подписания</div>
+        </div>
+        <div style="border-top:0.5px solid var(--border);display:flex;flex-direction:column;">
+            <button onclick="alertGoToSign()" style="padding:14px;background:none;border:none;border-bottom:0.5px solid var(--border);font-family:'Manrope',sans-serif;font-size:16px;font-weight:700;color:var(--accent);cursor:pointer;">
+                Перейти к подписанию
+            </button>
+            <button onclick="alertClose()" style="padding:14px;background:none;border:none;font-family:'Manrope',sans-serif;font-size:16px;color:var(--ink-soft);cursor:pointer;">
+                Закрыть
+            </button>
+        </div>
     </div>
-    <div style="border-top:0.5px solid var(--border);display:flex;flex-direction:column;">
-      <button onclick="alertGoToSign()" style="padding:14px;background:none;border:none;border-bottom:0.5px solid var(--border);font-family:'Manrope',sans-serif;font-size:16px;font-weight:700;color:var(--accent);cursor:pointer;">
-        Перейти к подписанию
-      </button>
-      <button onclick="alertClose()" style="padding:14px;background:none;border:none;font-family:'Manrope',sans-serif;font-size:16px;color:var(--ink-soft);cursor:pointer;">
-        Закрыть
-      </button>
-    </div>
-  </div>
 </div>
 
-  <!-- PHOTOS -->
-  <div class="section" id="photos-section" style="display:none">
-  <div class="section-title photos-title">
-    <span>Фото с объекта</span>
-    <button id="photos-toggle" type="button" class="photos-toggle-btn">Развернуть</button>
-  </div>
-  <div id="photos-wrap" class="photos-wrap photos-collapsed">
-    <div id="photos-grid" class="photos-grid"></div>
-  </div>
-</div>
-
-  <!-- DOCUMENTS -->
-  <div class="section" id="docs-section" style="display:none">
-  <div class="section-title photos-title">
-    <span>Документы</span>
-    <button id="docs-toggle" type="button" class="photos-toggle-btn">Развернуть</button>
-  </div>
-  <div id="docs-wrap" class="photos-wrap photos-collapsed-list">
-    <div id="docs-list" style="display:flex;flex-direction:column;gap:8px;"></div>
-  </div>
-</div>
-
-
-  <!-- RECEIPTS -->
-  <div class="section" id="receipts-section" style="display:none">
-  <div class="section-title photos-title">
-    <span>Чеки</span>
-    <button id="receipts-toggle" type="button" class="photos-toggle-btn">Развернуть</button>
-  </div>
-  <div id="receipts-wrap" class="photos-wrap photos-collapsed-list">
-    <div id="receipts-list" style="display:flex;flex-direction:column;gap:8px;"></div>
-  </div>
-</div>
-
-
-  <!-- MANAGER -->
-
-  <div class="manager-card">
-    <div>
-      <div class="manager-label">Быстрый переход</div>
-      <div class="manager-name" id="manager-name">Чат в Telegram</div>
-    </div>
-   <a class="manager-btn" id="manager-link" href="#">Перейти</a>
-  </div>
-
-  <div class="last-update" id="last-update">Данные не обновляются автоматически, обновите страницу самостоятельно</div>
-
-  </div><!-- /tab-content-main -->
-
-<!-- КНОПКА ПОДПИСИ (фиксированная, только на вкладке Смета) -->
-<!-- sign-bar удалён, логика в main-action-btn -->
-
-<!-- МОДАЛЬНОЕ ОКНО ПОДПИСИ -->
+<!-- SIGN MODAL -->
 <div id="sign-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;align-items:flex-end;">
-  <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:20px 20px 0 0;padding:24px 20px 40px;width:100%;">
-    <div style="font-size:17px;font-weight:700;color:var(--ink);margin-bottom:6px;">Подписание акта</div>
-    <div id="sign-phase-label" style="font-size:13px;color:var(--ink-soft);margin-bottom:20px;"></div>
-    <div style="font-size:13px;color:var(--ink-soft);margin-bottom:8px;">Введите номер телефона как в договоре</div>
-    <input id="sign-phone" type="tel" placeholder="+7 (___) ___-__-__"
-      style="width:100%;padding:13px 14px;border:0.5px solid var(--border);border-radius:10px;font-family:'Manrope',sans-serif;font-size:15px;margin-bottom:16px;outline:none;background:rgba(255,255,255,0.06);color:var(--ink);">
-    <div style="font-size:12px;color:var(--muted);margin-bottom:20px;line-height:1.5;">
-      Нажимая «Подтвердить», вы подтверждаете приёмку работ по данному акту. Факт подписания фиксируется с датой и вашими данными.
+    <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:20px 20px 0 0;padding:24px 20px 40px;width:100%;">
+        <div style="font-size:17px;font-weight:700;color:var(--ink);margin-bottom:6px;">Подписание акта</div>
+        <div id="sign-phase-label" style="font-size:13px;color:var(--ink-soft);margin-bottom:20px;"></div>
+        <div style="font-size:13px;color:var(--ink-soft);margin-bottom:8px;">Введите номер телефона как в договоре</div>
+        <input id="sign-phone" type="tel" placeholder="+7 (___) ___-__-__"
+            style="width:100%;padding:13px 14px;border:0.5px solid var(--border);border-radius:10px;font-family:'Manrope',sans-serif;font-size:15px;margin-bottom:16px;outline:none;background:rgba(255,255,255,0.06);color:var(--ink);">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:20px;line-height:1.5;">
+            Нажимая «Подтвердить», вы подтверждаете приёмку работ по данному акту. Факт подписания фиксируется с датой и вашими данными.
+        </div>
+        <button id="sign-submit-btn" onclick="submitSign()" style="width:100%;padding:14px;background:var(--accent);color:#fff;border:none;border-radius:12px;font-family:'Manrope',sans-serif;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:10px;display:flex;align-items:center;justify-content:center;gap:8px;">
+            <span id="sign-submit-text">Подтвердить</span>
+            <span id="sign-submit-spinner" style="display:none;width:18px;height:18px;border:2px solid rgba(255,255,255,0.4);border-top-color:#fff;border-radius:50%;animation:spin 0.7s linear infinite;"></span>
+        </button>
+        <button onclick="closeSignModal()" style="width:100%;padding:12px;background:none;color:var(--ink-soft);border:none;font-family:'Manrope',sans-serif;font-size:14px;cursor:pointer;">
+            Отмена
+        </button>
     </div>
-    <button id="sign-submit-btn" onclick="submitSign()" style="width:100%;padding:14px;background:var(--accent);color:#fff;border:none;border-radius:12px;font-family:'Manrope',sans-serif;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:10px;display:flex;align-items:center;justify-content:center;gap:8px;">
-      <span id="sign-submit-text">Подтвердить</span>
-      <span id="sign-submit-spinner" style="display:none;width:18px;height:18px;border:2px solid rgba(255,255,255,0.4);border-top-color:#fff;border-radius:50%;animation:spin 0.7s linear infinite;"></span>
-    </button>
-    <button onclick="closeSignModal()" style="width:100%;padding:12px;background:none;color:var(--ink-soft);border:none;font-family:'Manrope',sans-serif;font-size:14px;cursor:pointer;">
-      Отмена
-    </button>
-  </div>
 </div>
 
-<!-- МОДАЛКА ПОСЛЕ ПОДПИСАНИЯ -->
+<!-- PAYMENT MODAL (после подписания) -->
 <div id="pay-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:200;align-items:flex-end;">
-  <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:20px 20px 0 0;padding:24px 20px 40px;width:100%;">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
-      <div style="width:40px;height:40px;border-radius:50%;background:rgba(74,222,128,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-      </div>
-      <div>
-        <div style="font-size:17px;font-weight:700;color:var(--ink);">Реквизиты для перевода</div>
-        <div id="pay-phase" style="font-size:13px;color:var(--ink-soft);margin-top:2px;"></div>
-      </div>
-    </div>
-    <div style="font-size:13px;color:var(--ink-soft);margin-bottom:16px;line-height:1.5;">Ни на что не намекаем, но реквизиты на всякий случай оставим</div>
-    <div id="pay-date" style="font-size:12px;color:var(--muted);margin-bottom:16px;display:none;"></div>
-    <div style="background:var(--surface2);border-radius:14px;padding:16px;margin-bottom:20px;">
-      <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;">К оплате</div>
-      <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
-        <span style="font-size:14px;color:var(--ink-soft);">Остаток по акту:</span>
-        <span id="pay-balance" style="font-size:14px;font-weight:600;color:var(--ink);"></span>
-      </div>
-      <div id="pay-adv-row" style="display:flex;justify-content:space-between;margin-bottom:8px;">
-        <span id="pay-adv-label" style="font-size:14px;color:var(--ink-soft);"></span>
-        <span id="pay-adv" style="font-size:14px;font-weight:600;color:var(--ink);"></span>
-      </div>
-      <div style="border-top:0.5px solid var(--border);margin:10px 0 12px;"></div>
-      <div style="display:flex;justify-content:space-between;">
-        <span style="font-size:15px;font-weight:700;color:var(--ink);">Итого к переводу:</span>
-        <span id="pay-total" style="font-size:15px;font-weight:700;color:var(--accent);"></span>
-      </div>
-    </div>
-    <div style="background:var(--surface2);border-radius:14px;padding:16px;margin-bottom:20px;">
-      <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;">Перевод по СБП</div>
-      <div style="font-size:12px;color:var(--ink-soft);margin-bottom:6px;">Номер телефона</div>
-      <div style="display:flex;align-items:center;justify-content:space-between;background:var(--bg);border-radius:10px;padding:12px 14px;margin-bottom:12px;">
-        <span id="pay-phone-display" style="font-size:18px;font-weight:700;color:var(--ink);letter-spacing:.02em;"></span>
-        <button onclick="copyPayPhone()" id="copy-phone-btn" style="background:none;border:none;color:var(--accent);font-family:'Manrope',sans-serif;font-size:13px;font-weight:600;cursor:pointer;padding:0;flex-shrink:0;margin-left:10px;">Скопировать</button>
-      </div>
-      <div style="font-size:12px;color:var(--ink-soft);margin-bottom:6px;">Сумма перевода</div>
-      <div style="display:flex;align-items:center;justify-content:space-between;background:var(--bg);border-radius:10px;padding:12px 14px;">
-        <span id="pay-amount-display" style="font-size:18px;font-weight:700;color:var(--accent);"></span>
-        <button onclick="copyPayAmount()" id="copy-amount-btn" style="background:none;border:none;color:var(--accent);font-family:'Manrope',sans-serif;font-size:13px;font-weight:600;cursor:pointer;padding:0;flex-shrink:0;margin-left:10px;">Скопировать</button>
-      </div>
-    </div>
-    <button onclick="closePayModal()" style="width:100%;padding:12px;background:none;color:var(--ink-soft);border:none;font-family:'Manrope',sans-serif;font-size:14px;cursor:pointer;">
-      Закрыть
-    </button>
-  </div>
-</div>
-  
-<div id="tab-content-estimate" style="display:none;padding:100px 16px 70px;background:var(--bg);">
-  
-  <div id="est-loading" style="text-align:center;padding:40px 0;color:var(--muted);font-size:14px;">Загружаем смету...</div>
-  <div id="est-error" style="display:none;text-align:center;padding:40px 0;color:var(--muted);font-size:14px;">Смета не найдена</div>
-
-  <div id="est-content" style="display:none;">
-    <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:16px;padding:20px;margin-bottom:12px;">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;">
-        <div>
-          <div style="font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Внесено</div>
-          <div id="est-paid-total" style="font-size:24px;font-weight:700;letter-spacing:-.02em;color:#60b0ff;">—</div>
+    <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:20px 20px 0 0;padding:24px 20px 40px;width:100%;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
+            <div style="width:40px;height:40px;border-radius:50%;background:rgba(74,222,128,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div>
+                <div style="font-size:17px;font-weight:700;color:var(--ink);">Реквизиты для перевода</div>
+                <div id="pay-phase" style="font-size:13px;color:var(--ink-soft);margin-top:2px;"></div>
+            </div>
         </div>
-        <div style="text-align:right;">
-          <div style="font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Итого по смете</div>
-          <div id="est-grand-total" style="font-size:24px;font-weight:700;letter-spacing:-.02em;color:var(--ink);">—</div>
+        <div style="font-size:13px;color:var(--ink-soft);margin-bottom:16px;line-height:1.5;">Ни на что не намекаем, но реквизиты на всякий случай оставим</div>
+        <div id="pay-date" style="font-size:12px;color:var(--muted);margin-bottom:16px;display:none;"></div>
+        <div style="background:var(--surface2);border-radius:14px;padding:16px;margin-bottom:20px;">
+            <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;">К оплате</div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+                <span style="font-size:14px;color:var(--ink-soft);">Остаток по акту:</span>
+                <span id="pay-balance" style="font-size:14px;font-weight:600;color:var(--ink);"></span>
+            </div>
+            <div id="pay-adv-row" style="display:flex;justify-content:space-between;margin-bottom:8px;">
+                <span id="pay-adv-label" style="font-size:14px;color:var(--ink-soft);"></span>
+                <span id="pay-adv" style="font-size:14px;font-weight:600;color:var(--ink);"></span>
+            </div>
+            <div style="border-top:0.5px solid var(--border);margin:10px 0 12px;"></div>
+            <div style="display:flex;justify-content:space-between;">
+                <span style="font-size:15px;font-weight:700;color:var(--ink);">Итого к переводу:</span>
+                <span id="pay-total" style="font-size:15px;font-weight:700;color:var(--accent);"></span>
+            </div>
         </div>
-      </div>
-      <div style="height:4px;background:rgba(255,255,255,0.1);border-radius:2px;margin-bottom:16px;">
-        <div id="est-paid-bar" style="height:100%;background:#60b0ff;border-radius:2px;width:0%;transition:width 1s ease;"></div>
-      </div>
-
+        <div style="background:var(--surface2);border-radius:14px;padding:16px;margin-bottom:20px;">
+            <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;">Перевод по СБП</div>
+            <div style="font-size:12px;color:var(--ink-soft);margin-bottom:6px;">Номер телефона</div>
+            <div style="display:flex;align-items:center;justify-content:space-between;background:var(--bg);border-radius:10px;padding:12px 14px;margin-bottom:12px;">
+                <span id="pay-phone-display" style="font-size:18px;font-weight:700;color:var(--ink);letter-spacing:.02em;"></span>
+                <button onclick="copyPayPhone()" id="copy-phone-btn" style="background:none;border:none;color:var(--accent);font-family:'Manrope',sans-serif;font-size:13px;font-weight:600;cursor:pointer;padding:0;flex-shrink:0;margin-left:10px;">Скопировать</button>
+            </div>
+            <div style="font-size:12px;color:var(--ink-soft);margin-bottom:6px;">Сумма перевода</div>
+            <div style="display:flex;align-items:center;justify-content:space-between;background:var(--bg);border-radius:10px;padding:12px 14px;">
+                <span id="pay-amount-display" style="font-size:18px;font-weight:700;color:var(--accent);"></span>
+                <button onclick="copyPayAmount()" id="copy-amount-btn" style="background:none;border:none;color:var(--accent);font-family:'Manrope',sans-serif;font-size:13px;font-weight:600;cursor:pointer;padding:0;flex-shrink:0;margin-left:10px;">Скопировать</button>
+            </div>
+        </div>
+        <button onclick="closePayModal()" style="width:100%;padding:12px;background:none;color:var(--ink-soft);border:none;font-family:'Manrope',sans-serif;font-size:14px;cursor:pointer;">
+            Закрыть
+        </button>
     </div>
-    <div id="est-phases"></div>
-    <button id="main-action-btn" onclick="mainActionClick()" style="width:100%;padding:14px;background:var(--accent);color:#fff;border:none;border-radius:12px;font-family:'Manrope',sans-serif;font-size:15px;font-weight:700;cursor:pointer;margin-top:8px;">
-      💳 Внести средства через СБП
-    </button>
-  </div>
-
-</div>
-
 </div>
 
 <div id="file-modal" class="photo-modal">
-  <div style="position:absolute;top:calc(env(safe-area-inset-top, 0px) + 90px);left:10px;right:10px;display:flex;justify-content:space-between;align-items:center;gap:10px;z-index:2;">
-    <div id="file-modal-title" style="color:#fff;font-size:13px;opacity:.85;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Просмотр</div>
-    <div style="display:flex;align-items:center;gap:8px;">
-      <span id="file-modal-counter" style="color:rgba(255,255,255,0.5);font-size:12px;display:none;"></span>
-      <button id="file-modal-close" class="photo-modal-close" style="position:static;width:auto;height:38px;padding:0 14px;border-radius:10px;font-size:14px;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.18);color:#fff;">Закрыть</button>
+    <div style="position:absolute;top:calc(env(safe-area-inset-top, 0px) + 90px);left:10px;right:10px;display:flex;justify-content:space-between;align-items:center;gap:10px;z-index:2;">
+        <div id="file-modal-title" style="color:#fff;font-size:13px;opacity:.85;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Просмотр</div>
+        <div style="display:flex;align-items:center;gap:8px;">
+            <span id="file-modal-counter" style="color:rgba(255,255,255,0.5);font-size:12px;display:none;"></span>
+            <button id="file-modal-close" class="photo-modal-close" style="position:static;width:auto;height:38px;padding:0 14px;border-radius:10px;font-size:14px;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.18);color:#fff;">Закрыть</button>
+        </div>
     </div>
-  </div>
 
-  <button id="file-modal-prev" onclick="modalNav(-1)" style="display:none;position:absolute;left:10px;top:50%;transform:translateY(-50%);width:40px;height:40px;border-radius:50%;background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.18);color:#fff;font-size:20px;cursor:pointer;z-index:3;align-items:center;justify-content:center;">‹</button>
-  <button id="file-modal-next" onclick="modalNav(1)" style="display:none;position:absolute;right:10px;top:50%;transform:translateY(-50%);width:40px;height:40px;border-radius:50%;background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.18);color:#fff;font-size:20px;cursor:pointer;z-index:3;align-items:center;justify-content:center;">›</button>
+    <button id="file-modal-prev" onclick="modalNav(-1)" style="display:none;position:absolute;left:10px;top:50%;transform:translateY(-50%);width:40px;height:40px;border-radius:50%;background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.18);color:#fff;font-size:20px;cursor:pointer;z-index:3;align-items:center;justify-content:center;">‹</button>
+    <button id="file-modal-next" onclick="modalNav(1)" style="display:none;position:absolute;right:10px;top:50%;transform:translateY(-50%);width:40px;height:40px;border-radius:50%;background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.18);color:#fff;font-size:20px;cursor:pointer;z-index:3;align-items:center;justify-content:center;">›</button>
 
-  <img id="file-modal-img" alt="Файл" style="display:none;" />
-  <iframe id="file-modal-frame" title="Документ" style="display:none;width:96vw;height:86vh;border:0;border-radius:10px;background:#111;"></iframe>
+    <img id="file-modal-img" alt="Файл" style="display:none;" />
+    <iframe id="file-modal-frame" title="Документ" style="display:none;width:96vw;height:86vh;border:0;border-radius:10px;background:#111;"></iframe>
 </div>
 
   
 <script>
-  const API_BASE = 'https://assistcloudai.xyz/webhook/portal';
+    const API_BASE = 'https://assistcloudai.xyz/webhook/portal';
 
-  function getToken() {
-    const params = new URLSearchParams(window.location.search);
-    return params.get('token');
-  }
-
-  function formatDate(str) {
-    if (!str) return '—';
-    const parts = str.includes('.') ? str.split('.').reverse() : str.split('-');
-    const d = new Date(parts.join('-'));
-    if (isNaN(d)) return str;
-    return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
-  }
-
-  function formatMoney(num) {
-    if (num === undefined || num === null) return '—';
-    const abs = Math.abs(Number(num));
-    return abs.toLocaleString('ru-RU') + ' ₽';
-  }
-
-  function formatShortDate(str) {
-    if (!str) return '—';
-    const clean = String(str).replace(' по мск', '').trim();
-    try {
-      const d = new Date(clean.replace(' - ', ' '));
-      if (!isNaN(d)) return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
-    } catch (e) {}
-    return clean.split(' - ')[0];
-  }
-
-  function calcProgress(startStr, endStr) {
-    if (!startStr || !endStr) return 0;
-    const fmt = (s) => {
-      const p = String(s).includes('.') ? String(s).split('.').reverse() : String(s).split('-');
-      return new Date(p.join('-'));
-    };
-    const start = fmt(startStr);
-    const end = fmt(endStr);
-    const now = new Date();
-    if (isNaN(start) || isNaN(end)) return 0;
-    const total = end - start;
-    const passed = now - start;
-    return Math.min(100, Math.max(0, Math.round((passed / total) * 100)));
-  }
-
-  function toLargeImage(url) {
-    if (!url) return '';
-    return String(url)
-      .replace(/=s\d+/g, '=w1600')
-      .replace(/=w\d+/g, '=w1600')
-      .replace(/sz=w\d+/g, 'sz=w1600');
-  }
-
-  function toPreviewUrl(url) {
-    if (!url) return '';
-    return String(url).replace('/view', '/preview');
-  }
-
-  function escapeHtml(text) {
-    return String(text || '')
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;');
-  }
-
-  let _photoGallery = [];
-  let _photoIndex = 0;
-
-  function openFileModal(opts) {
-    const modal = document.getElementById('file-modal');
-    const titleEl = document.getElementById('file-modal-title');
-    const img = document.getElementById('file-modal-img');
-    const frame = document.getElementById('file-modal-frame');
-
-    const type = (opts && opts.type) || 'doc';
-    const title = (opts && opts.title) || 'Просмотр';
-    const url = (opts && opts.url) || '';
-
-    titleEl.textContent = title;
-    img.style.display = 'none';
-    frame.style.display = 'none';
-    img.src = '';
-    frame.src = '';
-
-    if (type === 'image') {
-      img.src = toLargeImage(url);
-      img.style.display = 'block';
-    } else {
-      _photoGallery = [];
-      frame.src = toPreviewUrl(url);
-      frame.style.display = 'block';
+    function getToken() {
+        const params = new URLSearchParams(window.location.search);
+        return params.get('token');
     }
 
-    updateModalNav();
-    modal.classList.add('open');
-    document.body.classList.add('modal-open');
-  }
-
-  function openPhotoModal(index) {
-    if (!_photoGallery.length) return;
-    _photoIndex = Math.max(0, Math.min(index, _photoGallery.length - 1));
-    const photo = _photoGallery[_photoIndex];
-    const modal = document.getElementById('file-modal');
-    const titleEl = document.getElementById('file-modal-title');
-    const img = document.getElementById('file-modal-img');
-    const frame = document.getElementById('file-modal-frame');
-    titleEl.textContent = photo.title;
-    frame.style.display = 'none';
-    frame.src = '';
-    img.src = toLargeImage(photo.url);
-    img.style.display = 'block';
-    updateModalNav();
-    modal.classList.add('open');
-    document.body.classList.add('modal-open');
-  }
-
-  function updateModalNav() {
-    const isGallery = _photoGallery.length > 1;
-    const prev = document.getElementById('file-modal-prev');
-    const next = document.getElementById('file-modal-next');
-    const counter = document.getElementById('file-modal-counter');
-    if (prev) prev.style.display = isGallery ? 'flex' : 'none';
-    if (next) next.style.display = isGallery ? 'flex' : 'none';
-    if (counter) {
-      counter.style.display = isGallery ? 'inline' : 'none';
-      counter.textContent = (_photoIndex + 1) + ' / ' + _photoGallery.length;
-    }
-    if (prev) prev.style.opacity = _photoIndex === 0 ? '0.3' : '1';
-    if (next) next.style.opacity = _photoIndex === _photoGallery.length - 1 ? '0.3' : '1';
-  }
-
-  function modalNav(dir) {
-    if (!_photoGallery.length) return;
-    const newIndex = _photoIndex + dir;
-    if (newIndex < 0 || newIndex >= _photoGallery.length) return;
-    if (window.__resetModalZoom) window.__resetModalZoom();
-    openPhotoModal(newIndex);
-  }
-
-  function closeFileModal() {
-    const modal = document.getElementById('file-modal');
-    const img = document.getElementById('file-modal-img');
-    const frame = document.getElementById('file-modal-frame');
-    modal.classList.remove('open');
-    document.body.classList.remove('modal-open');
-    if (window.__resetModalZoom) window.__resetModalZoom();
-    img.src = '';
-    frame.src = '';
-  }
-
-  // Свайп для листания фото
-  (function setupModalSwipe() {
-    const modal = document.getElementById('file-modal');
-    let swipeStartX = 0;
-    let swipeStartY = 0;
-    let swipeMoved = false;
-    modal.addEventListener('touchstart', e => {
-      if (e.touches.length !== 1) return;
-      swipeStartX = e.touches[0].clientX;
-      swipeStartY = e.touches[0].clientY;
-      swipeMoved = false;
-    }, { passive: true });
-    modal.addEventListener('touchmove', e => {
-      if (e.touches.length !== 1) return;
-      const dx = Math.abs(e.touches[0].clientX - swipeStartX);
-      const dy = Math.abs(e.touches[0].clientY - swipeStartY);
-      if (dx > 8 || dy > 8) swipeMoved = true;
-    }, { passive: true });
-    modal.addEventListener('touchend', e => {
-      if (!_photoGallery.length) return;
-      if (window.__zoomScale && window.__zoomScale > 1) return;
-      const dx = e.changedTouches[0].clientX - swipeStartX;
-      const dy = e.changedTouches[0].clientY - swipeStartY;
-      if (Math.abs(dx) < 50 || Math.abs(dy) > Math.abs(dx) * 0.6) return;
-      modalNav(dx < 0 ? 1 : -1);
-    }, { passive: true });
-
-    // Закрытие по клику на фон — только если не было свайпа
-    modal.addEventListener('click', e => {
-      if (swipeMoved) { swipeMoved = false; return; }
-      if (e.target === modal) closeFileModal();
-    });
-  })();
-// Zoom only inside modal image (doesn't affect whole page)
-(function setupModalImageZoom() {
-  const modal = document.getElementById('file-modal');
-  const img = document.getElementById('file-modal-img');
-  if (!modal || !img) return;
-
-  let scale = 1;
-  let x = 0;
-  let y = 0;
-  let isDragging = false;
-  let startX = 0;
-  let startY = 0;
-  let moved = false;
-
-  function applyTransform() {
-    img.style.transform = `translate(${x}px, ${y}px) scale(${scale})`;
-    img.style.transformOrigin = 'center center';
-    img.style.transition = isDragging ? 'none' : 'transform .18s ease';
-    img.style.cursor = scale > 1 ? (isDragging ? 'grabbing' : 'grab') : 'default';
-    window.__zoomScale = scale;
-  }
-
-  function resetZoom() {
-    scale = 1;
-    x = 0;
-    y = 0;
-    isDragging = false;
-    moved = false;
-    applyTransform();
-  }
-
-  // export for closeFileModal
-  window.__resetModalZoom = resetZoom;
-
-  // Double click / double tap toggle zoom
-  img.addEventListener('dblclick', (e) => {
-    e.preventDefault();
-    if (scale === 1) {
-      scale = 2;
-    } else {
-      resetZoom();
-      return;
-    }
-    applyTransform();
-  });
-
-  // Wheel zoom (desktop)
-  img.addEventListener('wheel', (e) => {
-    if (img.style.display === 'none') return;
-    e.preventDefault();
-    const delta = e.deltaY < 0 ? 0.2 : -0.2;
-    scale = Math.max(1, Math.min(4, scale + delta));
-    if (scale === 1) {
-      x = 0; y = 0;
-    }
-    applyTransform();
-  }, { passive: false });
-
-  // Mouse drag pan
-  img.addEventListener('mousedown', (e) => {
-    if (scale <= 1) return;
-    isDragging = true;
-    moved = false;
-    startX = e.clientX - x;
-    startY = e.clientY - y;
-    applyTransform();
-  });
-
-  window.addEventListener('mousemove', (e) => {
-    if (!isDragging) return;
-    moved = true;
-    x = e.clientX - startX;
-    y = e.clientY - startY;
-    applyTransform();
-  });
-
-  window.addEventListener('mouseup', () => {
-    if (!isDragging) return;
-    isDragging = false;
-    applyTransform();
-  });
-
-  // Touch pinch + pan
-  let pinchStartDist = 0;
-  let pinchStartScale = 1;
-  let touchPanStartX = 0;
-  let touchPanStartY = 0;
-
-  function getDist(t1, t2) {
-    const dx = t2.clientX - t1.clientX;
-    const dy = t2.clientY - t1.clientY;
-    return Math.hypot(dx, dy);
-  }
-
-  img.addEventListener('touchstart', (e) => {
-    if (e.touches.length === 2) {
-      pinchStartDist = getDist(e.touches[0], e.touches[1]);
-      pinchStartScale = scale;
-    } else if (e.touches.length === 1 && scale > 1) {
-      isDragging = true;
-      moved = false;
-      touchPanStartX = e.touches[0].clientX - x;
-      touchPanStartY = e.touches[0].clientY - y;
-    }
-    // scale=1 + 1 finger → не перехватываем, свайп обрабатывает модалка
-  }, { passive: true });
-
-  img.addEventListener('touchmove', (e) => {
-    if (e.touches.length === 2) {
-      const d = getDist(e.touches[0], e.touches[1]);
-      const ratio = d / (pinchStartDist || d);
-      scale = Math.max(1, Math.min(4, pinchStartScale * ratio));
-      if (scale === 1) {
-        x = 0; y = 0;
-      }
-      applyTransform();
-      return;
+    function formatDate(str) {
+        if (!str) return '—';
+        const parts = str.includes('.') ? str.split('.').reverse() : str.split('-');
+        const d = new Date(parts.join('-'));
+        if (isNaN(d)) return str;
+        return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
     }
 
-    if (e.touches.length === 1 && isDragging && scale > 1) {
-      moved = true;
-      x = e.touches[0].clientX - touchPanStartX;
-      y = e.touches[0].clientY - touchPanStartY;
-      applyTransform();
-      e.preventDefault();
-    }
-  }, { passive: false });
-
-  img.addEventListener('touchend', (e) => {
-    if (isDragging) {
-      isDragging = false;
-      applyTransform();
-    }
-  });
-
-  // Prevent modal close when dragging zoomed image
-  img.addEventListener('click', (e) => {
-    if (moved) {
-      e.preventDefault();
-      e.stopPropagation();
-      moved = false;
-    }
-  });
-
-  applyTransform();
-})();
-
-  document.addEventListener('click', (e) => {
-    if (e.target.id === 'file-modal-close') closeFileModal();
-  });
-
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closeFileModal();
-    if (e.key === 'ArrowLeft') modalNav(-1);
-    if (e.key === 'ArrowRight') modalNav(1);
-  });
-
-  function render(data, token) {
-    document.title = data.name || 'Мой объект';
-    document.getElementById('header-title').textContent = data.name || '—';
-    document.getElementById('header-stage').textContent = 'Текущий этап: ' + (data.current_stage || '—');
-
-    const daysLeft = data.days_left || '';
-    const daysNum = parseInt(daysLeft, 10);
-    if (!isNaN(daysNum) && daysNum < 0) {
-      document.getElementById('status-text').textContent = 'Срок истёк · ' + Math.abs(daysNum) + ' дн.';
-    } else if (!isNaN(daysNum) && daysNum <= 7) {
-      document.getElementById('status-text').textContent = 'Сдача через ' + daysNum + ' дн.';
-    } else {
-      document.getElementById('status-text').textContent = 'В работе';
+    function formatMoney(num) {
+        if (num === undefined || num === null) return '—';
+        const abs = Math.abs(Number(num));
+        return abs.toLocaleString('ru-RU') + ' ₽';
     }
 
-    const pct = calcProgress(data.date_start, data.date_end);
-    document.getElementById('progress-pct').textContent = pct + '%';
-    setTimeout(() => {
-      document.getElementById('progress-fill').style.width = pct + '%';
-    }, 100);
-    document.getElementById('date-start-label').textContent = data.days_passed ? ('Прошло: ' + data.days_passed) : 'Прошло: —';
-    document.getElementById('date-end-label').textContent = data.days_left ? ('Осталось: ' + data.days_left) : 'Осталось: —';
-
-    document.getElementById('date-start').textContent = formatDate(data.date_start);
-    document.getElementById('date-end').textContent = formatDate(data.date_end);
-    document.getElementById('days-passed').textContent = '';
-    document.getElementById('days-left').textContent = '';
-
-    document.getElementById('total-income').textContent = formatMoney(data.total_income);
-    const bal = Number(data.balance);
-    const balEl = document.getElementById('balance');
-    balEl.textContent = formatMoney(data.balance);
-    balEl.style.color = bal >= 0 ? 'var(--success)' : 'var(--accent)';
-
-    const txContainer = document.getElementById('transactions');
-    if (!data.transactions || data.transactions.length === 0) {
-      txContainer.innerHTML = '<div class="empty">Платежей пока нет</div>';
-    } else {
-      txContainer.innerHTML = data.transactions.map(tx => {
-        return '<div class="tx">' +
-          '<div><div class="tx-name">' + escapeHtml(tx.category || tx.description || '—') + '</div>' +
-          '<div class="tx-date">' + escapeHtml(formatShortDate(tx.date)) + '</div></div>' +
-          '<div class="tx-amount">+' + escapeHtml(formatMoney(tx.amount)) + '</div>' +
-          '</div>';
-      }).join('');
+    function formatShortDate(str) {
+        if (!str) return '—';
+        const clean = String(str).replace(' по мск', '').trim();
+        try {
+            const d = new Date(clean.replace(' - ', ' '));
+            if (!isNaN(d)) return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
+        } catch (e) {}
+        return clean.split(' - ')[0];
     }
 
-   if (data.folder_photos) {
-  fetch('https://assistcloudai.xyz/webhook/portal-files?folder_id=' + encodeURIComponent(data.folder_photos))
-    .then(r => r.json())
-    .then(d => {
-      const photos = (d.files || []).filter(f => f.type === 'image');
-      if (photos.length === 0) {
-        document.getElementById('photos-section').style.display = 'none';
-        return;
-      }
+    function calcProgress(startStr, endStr) {
+        if (!startStr || !endStr) return 0;
+        const fmt = (s) => {
+            const p = String(s).includes('.') ? String(s).split('.').reverse() : String(s).split('-');
+            return new Date(p.join('-'));
+        };
+        const start = fmt(startStr);
+        const end = fmt(endStr);
+        const now = new Date();
+        if (isNaN(start) || isNaN(end)) return 0;
+        const total = end - start;
+        const passed = now - start;
+        return Math.min(100, Math.max(0, Math.round((passed / total) * 100)));
+    }
 
-      document.getElementById('photos-section').style.display = 'block';
+    function toLargeImage(url) {
+        if (!url) return '';
+        return String(url)
+            .replace(/=s\d+/g, '=w1600')
+            .replace(/=w\d+/g, '=w1600')
+            .replace(/sz=w\d+/g, 'sz=w1600');
+    }
 
-      const grid = document.getElementById('photos-grid');
-      const wrap = document.getElementById('photos-wrap');
-      const toggleBtn = document.getElementById('photos-toggle');
+    function toPreviewUrl(url) {
+        if (!url) return '';
+        return String(url).replace('/view', '/preview');
+    }
 
-      _photoGallery = photos.map(f => ({
-        url: f.full_url || f.thumb_url || f.view_url || '',
-        title: f.name || 'Фото'
-      }));
+    function escapeHtml(text) {
+        return String(text || '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
 
-      grid.innerHTML = photos.map((f, i) => {
-        const thumb = escapeHtml(f.thumb_url || f.view_url || '');
-        return '<button type="button" data-index="' + i + '">' +
-          '<img src="' + thumb + '" loading="lazy" />' +
-          '</button>';
-      }).join('');
+    let _photoGallery = [];
+    let _photoIndex = 0;
 
-      grid.querySelectorAll('[data-index]').forEach(el => {
-        el.onclick = () => openPhotoModal(parseInt(el.dataset.index));
-      });
+    function openFileModal(opts) {
+        const modal = document.getElementById('file-modal');
+        const titleEl = document.getElementById('file-modal-title');
+        const img = document.getElementById('file-modal-img');
+        const frame = document.getElementById('file-modal-frame');
 
-      // если фото мало — не нужен toggle/градиент
-      if (photos.length <= 4) {
-        wrap.classList.remove('photos-collapsed');
-        toggleBtn.style.display = 'none';
-        return;
-      }
+        const type = (opts && opts.type) || 'doc';
+        const title = (opts && opts.title) || 'Просмотр';
+        const url = (opts && opts.url) || '';
 
-      let expanded = false;
-      toggleBtn.style.display = 'inline-flex';
-      toggleBtn.textContent = 'Развернуть';
-      wrap.classList.add('photos-collapsed');
+        titleEl.textContent = title;
+        img.style.display = 'none';
+        frame.style.display = 'none';
+        img.src = '';
+        frame.src = '';
 
-      toggleBtn.onclick = () => {
-        expanded = !expanded;
-        if (expanded) {
-          wrap.classList.remove('photos-collapsed');
-          toggleBtn.textContent = 'Свернуть';
+        if (type === 'image') {
+            img.src = toLargeImage(url);
+            img.style.display = 'block';
         } else {
-          wrap.classList.add('photos-collapsed');
-          toggleBtn.textContent = 'Развернуть';
+            _photoGallery = [];
+            frame.src = toPreviewUrl(url);
+            frame.style.display = 'block';
         }
-      };
-    })
-    .catch(() => {
-      document.getElementById('photos-section').style.display = 'none';
-    });
-}
 
-    if (data.folder_docs) {
-  fetch('https://assistcloudai.xyz/webhook/portal-files?folder_id=' + encodeURIComponent(data.folder_docs))
-    .then(r => r.json())
-    .then(d => {
-      const files = d.files || [];
-      if (files.length === 0) return;
-
-      document.getElementById('docs-section').style.display = 'block';
-
-      const list = document.getElementById('docs-list');
-      const docsWrap = document.getElementById('docs-wrap');
-      const docsToggle = document.getElementById('docs-toggle');
-
-      list.innerHTML = files.map(f => {
-        const type = escapeHtml(f.type || 'file');
-        const isImage = (f.type || '') === 'image';
-        const url = escapeHtml(
-          isImage
-            ? (f.full_url || f.thumb_url || f.view_url || '')
-            : (f.view_url || '')
-);
-const title = escapeHtml(f.name || 'Документ');
-
-        return '<button type="button" data-type="' + type + '" data-url="' + url + '" data-title="' + title + '" style="display:flex;align-items:center;gap:14px;padding:14px;background:rgba(255,255,255,0.05);border-radius:10px;border:0.5px solid var(--border);width:100%;text-align:left;cursor:pointer;">' +
-          '<div style="width:38px;height:38px;background:var(--accent-light);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">📑</div>' +
-          '<div style="font-size:14px;font-weight:500;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px;">' + title + '</div>' +
-          '<div style="margin-left:auto;color:var(--muted);">Открыть</div>' +
-          '</button>';
-      }).join('');
-
-      list.querySelectorAll('[data-url]').forEach(el => {
-        el.onclick = () => {
-          openFileModal({
-            type: el.dataset.type === 'image' ? 'image' : 'doc',
-            title: el.dataset.title || 'Документ',
-            url: el.dataset.url || ''
-          });
-        };
-      });
-
-      if (!docsWrap || !docsToggle) return;
-
-      if (files.length <= 1) {
-        docsToggle.style.display = 'none';
-        docsWrap.classList.remove('photos-collapsed-list');
-      } else {
-        let docsExpanded = false;
-        docsToggle.style.display = 'inline-flex';
-        docsToggle.textContent = 'Развернуть';
-        docsWrap.classList.add('photos-collapsed-list');
-
-        docsToggle.onclick = () => {
-          docsExpanded = !docsExpanded;
-          docsWrap.classList.toggle('photos-collapsed-list', !docsExpanded);
-          docsToggle.textContent = docsExpanded ? 'Свернуть' : 'Развернуть';
-        };
-      }
-    })
-    .catch(() => {});
-}
-
-   if (data.folder_receipts) {
-  fetch('https://assistcloudai.xyz/webhook/portal-files?folder_id=' + encodeURIComponent(data.folder_receipts))
-    .then(r => r.json())
-    .then(d => {
-      const files = d.files || [];
-      if (files.length === 0) return;
-
-      document.getElementById('receipts-section').style.display = 'block';
-
-      const list = document.getElementById('receipts-list');
-      const receiptsWrap = document.getElementById('receipts-wrap');
-      const receiptsToggle = document.getElementById('receipts-toggle');
-
-      list.innerHTML = files.map(f => {
-        const type = escapeHtml(f.type || 'file');
-        const isImage = (f.type || '') === 'image';
-        const url = escapeHtml(
-          isImage
-            ? (f.full_url || f.thumb_url || f.view_url || '')
-            : (f.view_url || '')
-);
-const title = escapeHtml(f.name || 'Чек');
-
-        return '<button type="button" data-type="' + type + '" data-url="' + url + '" data-title="' + title + '" style="display:flex;align-items:center;gap:14px;padding:14px;background:rgba(255,255,255,0.05);border-radius:10px;border:0.5px solid var(--border);width:100%;text-align:left;cursor:pointer;">' +
-          '<div style="width:38px;height:38px;background:var(--accent-light);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🧾</div>' +
-          '<div style="font-size:14px;font-weight:500;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px;">' + title + '</div>' +
-          '<div style="margin-left:auto;color:var(--muted);">Открыть</div>' +
-          '</button>';
-      }).join('');
-
-      list.querySelectorAll('[data-url]').forEach(el => {
-        el.onclick = () => {
-          openFileModal({
-            type: el.dataset.type === 'image' ? 'image' : 'doc',
-            title: el.dataset.title || 'Чек',
-            url: el.dataset.url || ''
-          });
-        };
-      });
-
-      if (!receiptsWrap || !receiptsToggle) return;
-
-      if (files.length <= 1) {
-        receiptsToggle.style.display = 'none';
-        receiptsWrap.classList.remove('photos-collapsed-list');
-      } else {
-        let receiptsExpanded = false;
-        receiptsToggle.style.display = 'inline-flex';
-        receiptsToggle.textContent = 'Развернуть';
-        receiptsWrap.classList.add('photos-collapsed-list');
-
-        receiptsToggle.onclick = () => {
-          receiptsExpanded = !receiptsExpanded;
-          receiptsWrap.classList.toggle('photos-collapsed-list', !receiptsExpanded);
-          receiptsToggle.textContent = receiptsExpanded ? 'Свернуть' : 'Развернуть';
-        };
-      }
-    })
-    .catch(() => {});
-}
-
-    window._portalToken = token;
-    window._portalName = data.name;
-
-    if (data.folder_docs) {
-  window._folderDocs = data.folder_docs;
-  window._loadEstimate(data.folder_docs, data.advance_pct);
-} else {
-      document.getElementById('est-loading').style.display = 'none';
-      document.getElementById('est-error').style.display = 'block';
+        updateModalNav();
+        modal.classList.add('open');
+        document.body.classList.add('modal-open');
     }
 
-    const linkEl = document.getElementById('manager-link');
-    if (linkEl && data.contact_link) linkEl.href = data.contact_link;
-
-    document.getElementById('last-update').textContent = 'Данные не обновляются автоматически, обновите страницу самостоятельно';
-  }
-
-  async function init() {
-    const tg = window.Telegram?.WebApp;
-    const tgId = tg?.initDataUnsafe?.user?.id;
-    const token = getToken();
-
-    let apiUrl;
-    if (tgId) {
-      apiUrl = 'https://assistcloudai.xyz/webhook/portal-by-tgid?tg_id=' + encodeURIComponent(tgId);
-    } else if (token) {
-      apiUrl = API_BASE + '?token=' + encodeURIComponent(token);
-    } else {
-      document.getElementById('loader').style.display = 'none';
-      document.getElementById('error').style.display = 'flex';
-      return;
+    function openPhotoModal(index) {
+        if (!_photoGallery.length) return;
+        _photoIndex = Math.max(0, Math.min(index, _photoGallery.length - 1));
+        const photo = _photoGallery[_photoIndex];
+        const modal = document.getElementById('file-modal');
+        const titleEl = document.getElementById('file-modal-title');
+        const img = document.getElementById('file-modal-img');
+        const frame = document.getElementById('file-modal-frame');
+        titleEl.textContent = photo.title;
+        frame.style.display = 'none';
+        frame.src = '';
+        img.src = toLargeImage(photo.url);
+        img.style.display = 'block';
+        updateModalNav();
+        modal.classList.add('open');
+        document.body.classList.add('modal-open');
     }
 
-    try {
-      const res = await fetch(apiUrl);
-      if (!res.ok) throw new Error('not found');
-      const data = await res.json();
-      if (!data.name || data.error) throw new Error('empty');
-
-      document.getElementById('loader').style.display = 'none';
-      document.getElementById('error').style.display = 'none';
-      document.getElementById('main').style.display = 'block';
-      render(data, token || data.portal_token);
-    } catch (e) {
-      document.getElementById('loader').style.display = 'none';
-      document.getElementById('error').style.display = 'flex';
-    }
-  }
-
-  init();
-
-
-  function switchTab(tab) {
-    document.getElementById('tab-content-main').style.display = tab === 'main' ? 'block' : 'none';
-    document.getElementById('tab-content-estimate').style.display = tab === 'estimate' ? 'block' : 'none';
-    document.getElementById('tab-main').style.color = tab === 'main' ? 'var(--accent)' : 'var(--muted)';
-    document.getElementById('tab-estimate').style.color = tab === 'estimate' ? 'var(--accent)' : 'var(--muted)';
-    if (tab === 'estimate') checkSignBar();
-    // sign-bar удалён
-  }
-
-  function fmtRub(n) {
-    const num = typeof n === 'string' ? parseFloat(n.replace(/[^\d.]/g,'')) : Number(n);
-    if (!num || isNaN(num)) return '—';
-    return num.toLocaleString('ru-RU', {minimumFractionDigits:0, maximumFractionDigits:0}) + ' ₽';
-  }
-
-  function parseEstimateCSV(csv) {
-    const lines = csv.split('\n').map(l => {
-      const cols = []; let cur = ''; let inQ = false;
-      for (let i = 0; i < l.length; i++) {
-        if (l[i] === '"') { inQ = !inQ; }
-        else if (l[i] === ',' && !inQ) { cols.push(cur.trim()); cur = ''; }
-        else { cur += l[i]; }
-      }
-      cols.push(cur.trim());
-      return cols;
-    });
-
-    const phases = [];
-    let curPhase = null, curSection = null, grandTotal = 0;
-
-    for (const c of lines) {
-      const col0 = String(c[0]||'').trim();
-      const col1 = String(c[1]||'').trim();
-      const col2 = String(c[2]||'').trim();
-      const col3 = String(c[3]||'').trim();
-      const col4 = String(c[4]||'').trim();
-      const col5 = String(c[5]||'').trim();
-
-      // Новый этап — "Этап №N" в col0
-      if (col0.startsWith('Этап №') || col0.startsWith('Этап №')) {
-        const etapNum = col0.replace('Этап №','').trim();
-        curPhase = { phase: 'Этап ' + etapNum, sections: [], phase_total: 0 };
-        phases.push(curPhase);
-        curSection = null;
-        continue;
-      }
-
-      // Заголовок раздела — col1 заканчивается на ":" нет цены
-      if (!col0 && col1 && col1.endsWith(':') && !col5) {
-        curSection = { title: col1.replace(/:$/, ''), items: [] };
-        if (curPhase) curPhase.sections.push(curSection);
-        continue;
-      }
-
-      // Итог этапа
-      if (col1.includes('Итоговая стоимость') && col5) {
-        const val = parseFloat(col5.replace(/[^\d.]/g,''));
-        if (curPhase && val) curPhase.phase_total = val;
-        continue;
-      }
-
-      // Гранд-итог
-      if (col1.includes('Итог:') && col2) {
-        grandTotal = parseFloat(col2.replace(/[^\d.]/g,'')) || grandTotal;
-        continue;
-      }
-      if (col1.includes('Общая стоимость') && col5) {
-        grandTotal = parseFloat(col5.replace(/[^\d.]/g,'')) || grandTotal;
-        continue;
-      }
-
-      // Позиция работы — есть название и цена
-      if (col1 && col5 && !col1.includes('Итого') && !col1.includes('стоимость') && !col1.includes('Этап')) {
-        const total = parseFloat(col5.replace(/[^\d.]/g,'')) || 0;
-        const unitP = parseFloat(col4.replace(/[^\d.]/g,'')) || 0;
-        if (!curSection) {
-          curSection = { title: '', items: [] };
-          if (curPhase) curPhase.sections.push(curSection);
+    function updateModalNav() {
+        const isGallery = _photoGallery.length > 1;
+        const prev = document.getElementById('file-modal-prev');
+        const next = document.getElementById('file-modal-next');
+        const counter = document.getElementById('file-modal-counter');
+        if (prev) prev.style.display = isGallery ? 'flex' : 'none';
+        if (next) next.style.display = isGallery ? 'flex' : 'none';
+        if (counter) {
+            counter.style.display = isGallery ? 'inline' : 'none';
+            counter.textContent = (_photoIndex + 1) + ' / ' + _photoGallery.length;
         }
-        curSection.items.push({
-          num: col0 || '',
-          name: col1,
-          unit: col2,
-          qty: parseFloat(col3) || 0,
-          price_unit: unitP,
-          price_total: total
+        if (prev) prev.style.opacity = _photoIndex === 0 ? '0.3' : '1';
+        if (next) next.style.opacity = _photoIndex === _photoGallery.length - 1 ? '0.3' : '1';
+    }
+
+    function modalNav(dir) {
+        if (!_photoGallery.length) return;
+        const newIndex = _photoIndex + dir;
+        if (newIndex < 0 || newIndex >= _photoGallery.length) return;
+        if (window.__resetModalZoom) window.__resetModalZoom();
+        openPhotoModal(newIndex);
+    }
+
+    function closeFileModal() {
+        const modal = document.getElementById('file-modal');
+        const img = document.getElementById('file-modal-img');
+        const frame = document.getElementById('file-modal-frame');
+        modal.classList.remove('open');
+        document.body.classList.remove('modal-open');
+        if (window.__resetModalZoom) window.__resetModalZoom();
+        img.src = '';
+        frame.src = '';
+    }
+
+    // Свайп для листания фото
+    (function setupModalSwipe() {
+        const modal = document.getElementById('file-modal');
+        let swipeStartX = 0;
+        let swipeStartY = 0;
+        let swipeMoved = false;
+        modal.addEventListener('touchstart', e => {
+            if (e.touches.length !== 1) return;
+            swipeStartX = e.touches[0].clientX;
+            swipeStartY = e.touches[0].clientY;
+            swipeMoved = false;
+        }, { passive: true });
+        modal.addEventListener('touchmove', e => {
+            if (e.touches.length !== 1) return;
+            const dx = Math.abs(e.touches[0].clientX - swipeStartX);
+            const dy = Math.abs(e.touches[0].clientY - swipeStartY);
+            if (dx > 8 || dy > 8) swipeMoved = true;
+        }, { passive: true });
+        modal.addEventListener('touchend', e => {
+            if (!_photoGallery.length) return;
+            if (window.__zoomScale && window.__zoomScale > 1) return;
+            const dx = e.changedTouches[0].clientX - swipeStartX;
+            const dy = e.changedTouches[0].clientY - swipeStartY;
+            if (Math.abs(dx) < 50 || Math.abs(dy) > Math.abs(dx) * 0.6) return;
+            modalNav(dx < 0 ? 1 : -1);
+        }, { passive: true });
+
+        // Закрытие по клику на фон — только если не было свайпа
+        modal.addEventListener('click', e => {
+            if (swipeMoved) { swipeMoved = false; return; }
+            if (e.target === modal) closeFileModal();
         });
-      }
-    }
+    })();
 
-    // Считаем grandTotal если не нашли
-    if (!grandTotal) grandTotal = phases.reduce((s, p) => s + (p.phase_total || 0), 0);
+    // Zoom only inside modal image (doesn't affect whole page)
+    (function setupModalImageZoom() {
+        const modal = document.getElementById('file-modal');
+        const img = document.getElementById('file-modal-img');
+        if (!modal || !img) return;
 
-    return { phases, grand_total: grandTotal };
-  }
+        let scale = 1;
+        let x = 0;
+        let y = 0;
+        let isDragging = false;
+        let startX = 0;
+        let startY = 0;
+        let moved = false;
 
-  function renderEstimate(data) {
-  document.getElementById('est-loading').style.display = 'none';
-  if (!data || !data.phases || !data.phases.length) {
-    document.getElementById('est-error').style.display = 'block';
-    return;
-  }
-  document.getElementById('est-content').style.display = 'block';
-  document.getElementById('est-grand-total').textContent = fmtRub(data.grand_total);
-
-  // Считаем сколько внесено (сумма act_final по подписанным этапам)
-  const paidTotal = data.phases.reduce((s, p) => s + (p.signed && p.act_final ? p.act_final : 0), 0);
-  const paidPct = data.grand_total > 0 ? Math.min(100, Math.round(paidTotal / data.grand_total * 100)) : 0;
-  document.getElementById('est-paid-total').textContent = fmtRub(paidTotal);
-  setTimeout(() => { document.getElementById('est-paid-bar').style.width = paidPct + '%'; }, 100);
-
-  const container = document.getElementById('est-phases');
-  container.innerHTML = data.phases.map((phase, pi) => {
-
-    const hasAct = phase.act_total > 0;
-
-    const sections = phase.sections.map(sec => {
-      const rows = sec.items.map(item => {
-        const hasActData = item.act_qty !== undefined;
-        const diff = item.qty_diff || 0;
-        const diffAbs = Math.abs(diff).toFixed(2).replace(/\.?0+$/, '');
-        const diffColor = diff > 0.01 ? '#D32F2F' : diff < -0.01 ? '#4A7C59' : 'var(--muted)';
-        const diffSign = diff > 0.01 ? '▲ +' : diff < -0.01 ? '▼ −' : '';
-        const diffText = hasActData && diff !== 0 ? `<span style="color:${diffColor};font-size:11px;font-weight:600;margin-left:4px;">${diffSign}${diffAbs}</span>` : '';
-        const qtyDisplay = hasActData
-  ? (diff === 0
-      ? `<span style="font-weight:600;">${+Number(item.act_qty).toFixed(2)}</span>`
-      : `<span style="color:var(--ink-soft);text-decoration:line-through;font-size:11px;">${+Number(item.qty).toFixed(2)}</span> → <span style="color:${diffColor};font-weight:600;">${+Number(item.act_qty).toFixed(2)}</span>${diffText}`)
-  : `${item.qty}`;
-
-        const priceDisplay = hasActData
-  ? (diff === 0
-      ? `<div style="font-weight:600;color:var(--ink);text-align:right;white-space:nowrap;">${fmtRub(item.act_total)}</div>`
-      : `<div style="font-weight:600;color:var(--ink);text-align:right;white-space:nowrap;">${fmtRub(item.act_total)}</div>
-         <div style="font-size:11px;color:var(--muted);text-align:right;text-decoration:line-through;">${fmtRub(item.price_total)}</div>`)
-  : `<div style="font-weight:600;color:var(--ink);text-align:right;white-space:nowrap;">${fmtRub(item.price_total)}</div>`;
-        const rowStyle = hasAct && !hasActData
-  ? `opacity:0.4;`
-  : ``;
-return `<div style="display:grid;grid-template-columns:22px 1fr auto;gap:6px;padding:10px 14px;border-bottom:1px solid var(--border);font-size:13px;align-items:start;${rowStyle}">
-          <div style="color:var(--muted);font-size:11px;padding-top:2px;">${escapeHtml(String(item.num))}</div>
-          <div>
-            <div style="color:var(--ink);line-height:1.35;${hasAct && !hasActData ? 'text-decoration:line-through;' : ''}">${escapeHtml(item.name)}</div>
-            <div style="font-size:11px;color:var(--ink-soft);margin-top:2px;">${qtyDisplay} ${escapeHtml(item.unit)} × ${fmtRub(item.price_unit)}</div>
-          </div>
-          <div>${priceDisplay}</div>
-        </div>`;
-      }).join('');
-      const secTitle = sec.title ? `<div style="padding:8px 14px 4px;font-size:11px;font-weight:600;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.05em;border-top:1px solid var(--border);">${escapeHtml(sec.title)}</div>` : '';
-      return secTitle + rows;
-    }).join('');
-
-    const extraItems = phase.extra_items || [];
-    const extraBlock = extraItems.length > 0 ? `
-      <div style="border-top:2px solid var(--accent-light);">
-        <div style="padding:8px 14px 4px;font-size:11px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.05em;">+ Доп. работы</div>
-        ${extraItems.map(item => `
-          <div style="display:grid;grid-template-columns:1fr auto;gap:6px;padding:10px 14px;border-bottom:1px solid var(--border);font-size:13px;align-items:start;">
-            <div>
-              <div style="color:var(--ink);line-height:1.35;">${escapeHtml(item.name)}</div>
-              <div style="font-size:11px;color:var(--ink-soft);margin-top:2px;">${item.qty} ${escapeHtml(item.unit)} × ${fmtRub(item.price_unit)}</div>
-            </div>
-            <div style="font-weight:600;color:var(--accent);text-align:right;white-space:nowrap;">${fmtRub(item.price_total)}</div>
-          </div>`).join('')}
-      </div>` : '';
-
-    const actBlock = hasAct ? `
-      <div style="border-top:2px solid var(--border);background:var(--bg);padding:14px 16px;display:flex;flex-direction:column;gap:8px;">
-        <div style="display:flex;justify-content:space-between;font-size:13px;">
-          <span style="color:var(--ink-soft);">По договору</span>
-          <span style="color:var(--ink-soft);text-decoration:line-through;">${fmtRub(phase.phase_total)}</span>
-        </div>
-        <div style="display:flex;justify-content:space-between;font-size:13px;">
-          <span style="color:var(--ink-soft);">Факт СМР</span>
-          <span style="font-weight:600;color:var(--ink);">${fmtRub(phase.act_total - (phase.act_extra_total || 0))}</span>
-        </div>
-        ${extraItems.length > 0 ? `<div style="display:flex;justify-content:space-between;font-size:13px;">
-          <span style="color:var(--accent);">+ Доп. работы</span>
-         <span style="font-weight:600;color:var(--accent);">${fmtRub(extraItems.reduce((s,i) => s + (i.price_total||0), 0))}</span>
-        </div>` : ''}
-        <div style="display:flex;justify-content:space-between;font-size:14px;font-weight:700;padding-top:8px;border-top:1px solid var(--border);">
-          <span style="color:var(--ink);">Итого к оплате</span>
-          <span style="color:var(--ink);">${fmtRub(phase.act_final)}</span>
-        </div>
-        ${!phase.act_pay_is_manual ? `<div style="display:flex;justify-content:space-between;font-size:13px;">
-          <span style="color:var(--ink-soft);">Аванс (${Math.round((phase.act_advance / phase.phase_total) * 100)}%)</span>
-          <span style="color:var(--ink-soft);">−${fmtRub(phase.act_advance)}</span>
-        </div>` : ''}
-        <div style="display:flex;justify-content:space-between;font-size:15px;font-weight:700;padding-top:8px;border-top:1px solid var(--border);">
-          <span style="color:var(--ink);">К доплате</span>
-          <span style="color:var(--accent);">${fmtRub(phase.act_to_pay)}</span>
-        </div>
-        ${phase.act_pay_is_manual && phase.act_pay_comment ? `<div style="font-size:12px;color:var(--ink-soft);padding-top:4px;">
-          ${escapeHtml(phase.act_pay_comment)}
-        </div>` : ''}
-      </div>` : '';
-
-    const extraTotal = extraItems.reduce((s, i) => s + (i.price_total || 0), 0);
-    const badgeTotal = hasAct ? fmtRub(phase.act_final) : fmtRub(phase.phase_total + extraTotal);
-
-    return `<div style="border:0.5px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:8px;background:var(--surface);">
-      <div onclick="togglePhase(${pi})" style="display:flex;align-items:center;gap:10px;padding:14px 16px;cursor:pointer;background:var(--surface);">
-        <span style="font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;background:var(--accent-light);color:var(--accent);padding:4px 10px;border-radius:100px;flex-shrink:0;">${escapeHtml(phase.phase)}</span>
-        <span style="flex:1;font-size:13px;font-weight:600;color:var(--ink);">${badgeTotal}</span>
-        ${phase.signed ? '<span style="font-size:11px;background:rgba(74,222,128,0.15);color:#4ade80;padding:2px 8px;border-radius:100px;font-weight:600;">Закрыт</span>' : hasAct ? '<span style="font-size:11px;background:rgba(96,176,255,0.15);color:#60b0ff;padding:2px 8px;border-radius:100px;font-weight:600;">На подписании</span>' : ''}
-        <span id="chev-${pi}" style="color:var(--muted);font-size:11px;transition:transform .2s;">▼</span>
-      </div>
-      <div id="phase-rows-${pi}" style="display:none;">${sections}${extraBlock}${actBlock}</div>
-    </div>`;
-  }).join('');
-}
-
-  function togglePhase(i) {
-    const rows = document.getElementById('phase-rows-' + i);
-    const chev = document.getElementById('chev-' + i);
-    const open = rows.style.display !== 'none';
-    rows.style.display = open ? 'none' : 'block';
-    chev.style.transform = open ? '' : 'rotate(180deg)';
-  }
-
-  async function loadEstimate(folderDocs, advancePct) {
-  try {
-    const res = await fetch(`https://assistcloudai.xyz/webhook/estimate?folder_docs=${folderDocs}&advance_pct=${advancePct}&_=${Date.now()}`);
-    const data = await res.json();
-    _estimateData = data;
-    renderEstimate(data);
-    checkSignBar();
-  } catch(e) {
-    document.getElementById('est-loading').style.display = 'none';
-    document.getElementById('est-error').style.display = 'block';
-  }
-}
-
-  window._loadEstimate = loadEstimate;
-
-  // ===== ПОДПИСЬ АКТА =====
-  let _signPhaseIndex = null;
-  let _estimateData = null;
-
-  function checkSignBar() {
-    if (!_estimateData || !_estimateData.phases) return;
-    const idx = _estimateData.phases.findIndex(p => p.act_total > 0 && !p.signed);
-    _signPhaseIndex = idx >= 0 ? idx : null;
-    updateMainAction();
-    updateActionBanner();
-  }
-
-  let _alertShown = false;
-
-  function updateActionBanner() {
-    const overlay = document.getElementById('action-alert-overlay');
-    if (!overlay) return;
-    if (_signPhaseIndex !== null && !_alertShown) {
-      const phase = _estimateData.phases[_signPhaseIndex];
-      document.getElementById('alert-title').textContent = phase.phase;
-      overlay.style.display = 'flex';
-      document.body.classList.add('modal-open');
-      _alertShown = true;
-    } else if (_signPhaseIndex === null) {
-      overlay.style.display = 'none';
-      document.body.classList.remove('modal-open');
-    }
-  }
-
-  function alertGoToSign() {
-    document.getElementById('action-alert-overlay').style.display = 'none';
-    document.body.classList.remove('modal-open');
-    switchTab('estimate');
-    setTimeout(openSignModal, 300);
-  }
-
-  function alertClose() {
-    document.getElementById('action-alert-overlay').style.display = 'none';
-    document.body.classList.remove('modal-open');
-  }
-
-  function updateMainAction() {
-    const btn = document.getElementById('main-action-btn');
-    if (!btn) return;
-    if (_signPhaseIndex !== null) {
-      btn.textContent = 'Подписать акт';
-      btn.onclick = openSignModal;
-      document.getElementById('estimate-dot').style.display = 'inline-block';
-    } else {
-      btn.textContent = 'Реквизиты для оплаты';
-      btn.onclick = openReqModal;
-      document.getElementById('estimate-dot').style.display = 'none';
-    }
-  }
-
-  function openReqModal() {
-    if (!_estimateData || !_estimateData.phases) return;
-    const phases = _estimateData.phases;
-    let actToPay = 0, advanceNext = 0, advanceNextPhase = null, phaseName = '';
-    // Берём последний этап у которого есть акт (act_total > 0), независимо от signed
-    let lastActIdx = -1;
-    for (let i = 0; i < phases.length; i++) {
-      if (phases[i].act_total > 0) lastActIdx = i;
-    }
-    if (lastActIdx >= 0) {
-      const p = phases[lastActIdx];
-      actToPay = p.act_to_pay || 0;
-      phaseName = p.phase;
-      const advancePct = p.phase_total > 0 ? (p.act_advance / p.phase_total) : 0;
-      if (phases[lastActIdx + 1]) {
-        advanceNext = Math.round((phases[lastActIdx + 1].phase_total || 0) * advancePct);
-        advanceNextPhase = phases[lastActIdx + 1].phase;
-      }
-    }
-    const total = actToPay + advanceNext;
-    showPaymentScreen({
-      phase: phaseName || 'Текущий этап',
-      act_to_pay: actToPay,
-      advance_next: advanceNext,
-      advance_next_phase: advanceNextPhase,
-      total_to_pay: total,
-      signed_at: null
-    });
-  }
-
-  function openSignModal() {
-    if (_signPhaseIndex === null || !_estimateData) return;
-    const phase = _estimateData.phases[_signPhaseIndex];
-    document.getElementById('sign-phase-label').textContent = phase.phase + ' · ' + fmtRub(phase.act_final);
-    document.getElementById('sign-phone').value = '';
-    const modal = document.getElementById('sign-modal');
-    modal.style.display = 'flex';
-    document.body.classList.add('modal-open');
-  }
-
-  function closeSignModal() {
-    document.getElementById('sign-modal').style.display = 'none';
-    document.body.classList.remove('modal-open');
-  }
-
-  async function submitSign() {
-    const phone = document.getElementById('sign-phone').value.trim();
-    if (!phone || phone.replace(/\D/g,'').length < 10) {
-      alert('Введите корректный номер телефона');
-      return;
-    }
-    // Показываем кружок
-    const btn = document.getElementById('sign-submit-btn');
-    const btnText = document.getElementById('sign-submit-text');
-    const spinner = document.getElementById('sign-submit-spinner');
-    btn.disabled = true;
-    btnText.textContent = 'Отправляем...';
-    spinner.style.display = 'inline-block';
-    const phase = _estimateData.phases[_signPhaseIndex];
-    const nextPhase = _estimateData.phases[_signPhaseIndex + 1];
-    const advancePct = phase.act_advance / phase.phase_total;
-    const advanceNext = nextPhase ? Math.round(nextPhase.phase_total * advancePct) : 0;
-    const totalToPay = (phase.act_to_pay || 0) + advanceNext;
-    const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
-    const payload = {
-      phase: phase.phase,
-      act_final: phase.act_final,
-      act_to_pay: phase.act_to_pay || 0,
-      advance_next: advanceNext,
-      advance_next_phase: nextPhase ? nextPhase.phase : null,
-      total_to_pay: totalToPay,
-      phone,
-      telegram_id: tgUser?.id || null,
-      telegram_name: tgUser?.first_name || null,
-      signed_at: new Date().toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
-      folder_docs: window._folderDocs || null
-    };
-    try {
-      const res = await fetch('https://assistcloudai.xyz/webhook/sign-act', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      if (res.ok) {
-        phase.signed = true;
-        closeSignModal();
-        const _signedIdx = _signPhaseIndex;
-        _signPhaseIndex = null; updateMainAction(); updateActionBanner();
-        // Обновляем badge этапа без перезагрузки
-        const phaseEl = document.querySelector(`#phase-rows-${_signedIdx}`)?.previousElementSibling;
-        if (phaseEl) {
-          const oldBadge = phaseEl.querySelector('span[style*="rgba(96,176"]');
-          if (oldBadge) {
-            oldBadge.style.background = 'rgba(74,222,128,0.15)';
-            oldBadge.style.color = '#4ade80';
-            oldBadge.textContent = 'Закрыт';
-          }
+        function applyTransform() {
+            img.style.transform = `translate(${x}px, ${y}px) scale(${scale})`;
+            img.style.transformOrigin = 'center center';
+            img.style.transition = isDragging ? 'none' : 'transform .18s ease';
+            img.style.cursor = scale > 1 ? (isDragging ? 'grabbing' : 'grab') : 'default';
+            window.__zoomScale = scale;
         }
+
+        function resetZoom() {
+            scale = 1;
+            x = 0;
+            y = 0;
+            isDragging = false;
+            moved = false;
+            applyTransform();
+        }
+
+        // export for closeFileModal
+        window.__resetModalZoom = resetZoom;
+
+        // Double click / double tap toggle zoom
+        img.addEventListener('dblclick', (e) => {
+            e.preventDefault();
+            if (scale === 1) {
+                scale = 2;
+            } else {
+                resetZoom();
+                return;
+            }
+            applyTransform();
+        });
+
+        // Wheel zoom (desktop)
+        img.addEventListener('wheel', (e) => {
+            if (img.style.display === 'none') return;
+            e.preventDefault();
+            const delta = e.deltaY < 0 ? 0.2 : -0.2;
+            scale = Math.max(1, Math.min(4, scale + delta));
+            if (scale === 1) {
+                x = 0; y = 0;
+            }
+            applyTransform();
+        }, { passive: false });
+
+        // Mouse drag pan
+        img.addEventListener('mousedown', (e) => {
+            if (scale <= 1) return;
+            isDragging = true;
+            moved = false;
+            startX = e.clientX - x;
+            startY = e.clientY - y;
+            applyTransform();
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            moved = true;
+            x = e.clientX - startX;
+            y = e.clientY - startY;
+            applyTransform();
+        });
+
+        window.addEventListener('mouseup', () => {
+            if (!isDragging) return;
+            isDragging = false;
+            applyTransform();
+        });
+
+        // Touch pinch + pan
+        let pinchStartDist = 0;
+        let pinchStartScale = 1;
+        let touchPanStartX = 0;
+        let touchPanStartY = 0;
+
+        function getDist(t1, t2) {
+            const dx = t2.clientX - t1.clientX;
+            const dy = t2.clientY - t1.clientY;
+            return Math.hypot(dx, dy);
+        }
+
+        img.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 2) {
+                pinchStartDist = getDist(e.touches[0], e.touches[1]);
+                pinchStartScale = scale;
+            } else if (e.touches.length === 1 && scale > 1) {
+                isDragging = true;
+                moved = false;
+                touchPanStartX = e.touches[0].clientX - x;
+                touchPanStartY = e.touches[0].clientY - y;
+            }
+            // scale=1 + 1 finger → не перехватываем, свайп обрабатывает модалка
+        }, { passive: true });
+
+        img.addEventListener('touchmove', (e) => {
+            if (e.touches.length === 2) {
+                const d = getDist(e.touches[0], e.touches[1]);
+                const ratio = d / (pinchStartDist || d);
+                scale = Math.max(1, Math.min(4, pinchStartScale * ratio));
+                if (scale === 1) {
+                    x = 0; y = 0;
+                }
+                applyTransform();
+                return;
+            }
+
+            if (e.touches.length === 1 && isDragging && scale > 1) {
+                moved = true;
+                x = e.touches[0].clientX - touchPanStartX;
+                y = e.touches[0].clientY - touchPanStartY;
+                applyTransform();
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        img.addEventListener('touchend', (e) => {
+            if (isDragging) {
+                isDragging = false;
+                applyTransform();
+            }
+        });
+
+        // Prevent modal close when dragging zoomed image
+        img.addEventListener('click', (e) => {
+            if (moved) {
+                e.preventDefault();
+                e.stopPropagation();
+                moved = false;
+            }
+        });
+
+        applyTransform();
+    })();
+
+    document.addEventListener('click', (e) => {
+        if (e.target.id === 'file-modal-close') closeFileModal();
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeFileModal();
+        if (e.key === 'ArrowLeft') modalNav(-1);
+        if (e.key === 'ArrowRight') modalNav(1);
+    });
+
+    function render(data, token) {
+        document.title = data.name || 'Мой объект';
+        document.getElementById('header-title').textContent = data.name || '—';
+        document.getElementById('header-stage').textContent = 'Текущий этап: ' + (data.current_stage || '—');
+
+        const daysLeft = data.days_left || '';
+        const daysNum = parseInt(daysLeft, 10);
+        if (!isNaN(daysNum) && daysNum < 0) {
+            document.getElementById('status-text').textContent = 'Срок истёк · ' + Math.abs(daysNum) + ' дн.';
+        } else if (!isNaN(daysNum) && daysNum <= 7) {
+            document.getElementById('status-text').textContent = 'Сдача через ' + daysNum + ' дн.';
+        } else {
+            document.getElementById('status-text').textContent = 'В работе';
+        }
+
+        const pct = calcProgress(data.date_start, data.date_end);
+        document.getElementById('progress-pct').textContent = pct + '%';
+        setTimeout(() => {
+            document.getElementById('progress-fill').style.width = pct + '%';
+        }, 100);
+        document.getElementById('date-start-label').textContent = data.days_passed ? ('Прошло: ' + data.days_passed) : 'Прошло: —';
+        document.getElementById('date-end-label').textContent = data.days_left ? ('Осталось: ' + data.days_left) : 'Осталось: —';
+
+        document.getElementById('date-start').textContent = formatDate(data.date_start);
+        document.getElementById('date-end').textContent = formatDate(data.date_end);
+        document.getElementById('days-passed').textContent = '';
+        document.getElementById('days-left').textContent = '';
+
+        document.getElementById('total-income').textContent = formatMoney(data.total_income);
+        const bal = Number(data.balance);
+        const balEl = document.getElementById('balance');
+        balEl.textContent = formatMoney(data.balance);
+        balEl.style.color = bal >= 0 ? 'var(--success)' : 'var(--accent)';
+
+        const txContainer = document.getElementById('transactions');
+        if (!data.transactions || data.transactions.length === 0) {
+            txContainer.innerHTML = '<div class="empty">Платежей пока нет</div>';
+        } else {
+            txContainer.innerHTML = data.transactions.map(tx => {
+                return '<div class="tx">' +
+                    '<div><div class="tx-name">' + escapeHtml(tx.category || tx.description || '—') + '</div>' +
+                    '<div class="tx-date">' + escapeHtml(formatShortDate(tx.date)) + '</div></div>' +
+                    '<div class="tx-amount">+' + escapeHtml(formatMoney(tx.amount)) + '</div>' +
+                    '</div>';
+            }).join('');
+        }
+
+        if (data.folder_photos) {
+            fetch('https://assistcloudai.xyz/webhook/portal-files?folder_id=' + encodeURIComponent(data.folder_photos))
+                .then(r => r.json())
+                .then(d => {
+                    const photos = (d.files || []).filter(f => f.type === 'image');
+                    if (photos.length === 0) {
+                        document.getElementById('photos-section').style.display = 'none';
+                        return;
+                    }
+
+                    document.getElementById('photos-section').style.display = 'block';
+
+                    const grid = document.getElementById('photos-grid');
+                    const wrap = document.getElementById('photos-wrap');
+                    const toggleBtn = document.getElementById('photos-toggle');
+
+                    _photoGallery = photos.map(f => ({
+                        url: f.full_url || f.thumb_url || f.view_url || '',
+                        title: f.name || 'Фото'
+                    }));
+
+                    grid.innerHTML = photos.map((f, i) => {
+                        const thumb = escapeHtml(f.thumb_url || f.view_url || '');
+                        return '<button type="button" data-index="' + i + '">' +
+                            '<img src="' + thumb + '" loading="lazy" />' +
+                            '</button>';
+                    }).join('');
+
+                    grid.querySelectorAll('[data-index]').forEach(el => {
+                        el.onclick = () => openPhotoModal(parseInt(el.dataset.index));
+                    });
+
+                    // если фото мало — не нужен toggle/градиент
+                    if (photos.length <= 4) {
+                        wrap.classList.remove('photos-collapsed');
+                        toggleBtn.style.display = 'none';
+                        return;
+                    }
+
+                    let expanded = false;
+                    toggleBtn.style.display = 'inline-flex';
+                    toggleBtn.textContent = 'Развернуть';
+                    wrap.classList.add('photos-collapsed');
+
+                    toggleBtn.onclick = () => {
+                        expanded = !expanded;
+                        if (expanded) {
+                            wrap.classList.remove('photos-collapsed');
+                            toggleBtn.textContent = 'Свернуть';
+                        } else {
+                            wrap.classList.add('photos-collapsed');
+                            toggleBtn.textContent = 'Развернуть';
+                        }
+                    };
+                })
+                .catch(() => {
+                    document.getElementById('photos-section').style.display = 'none';
+                });
+        }
+
+        if (data.folder_docs) {
+            fetch('https://assistcloudai.xyz/webhook/portal-files?folder_id=' + encodeURIComponent(data.folder_docs))
+                .then(r => r.json())
+                .then(d => {
+                    const files = d.files || [];
+                    if (files.length === 0) return;
+
+                    document.getElementById('docs-section').style.display = 'block';
+
+                    const list = document.getElementById('docs-list');
+                    const docsWrap = document.getElementById('docs-wrap');
+                    const docsToggle = document.getElementById('docs-toggle');
+
+                    list.innerHTML = files.map(f => {
+                        const type = escapeHtml(f.type || 'file');
+                        const isImage = (f.type || '') === 'image';
+                        const url = escapeHtml(
+                            isImage
+                                ? (f.full_url || f.thumb_url || f.view_url || '')
+                                : (f.view_url || '')
+                        );
+                        const title = escapeHtml(f.name || 'Документ');
+
+                        return '<button type="button" data-type="' + type + '" data-url="' + url + '" data-title="' + title + '" style="display:flex;align-items:center;gap:14px;padding:14px;background:rgba(255,255,255,0.05);border-radius:10px;border:0.5px solid var(--border);width:100%;text-align:left;cursor:pointer;">' +
+                            '<div style="width:38px;height:38px;background:var(--accent-light);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">📑</div>' +
+                            '<div style="font-size:14px;font-weight:500;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px;">' + title + '</div>' +
+                            '<div style="margin-left:auto;color:var(--muted);">Открыть</div>' +
+                            '</button>';
+                    }).join('');
+
+                    list.querySelectorAll('[data-url]').forEach(el => {
+                        el.onclick = () => {
+                            openFileModal({
+                                type: el.dataset.type === 'image' ? 'image' : 'doc',
+                                title: el.dataset.title || 'Документ',
+                                url: el.dataset.url || ''
+                            });
+                        };
+                    });
+
+                    if (!docsWrap || !docsToggle) return;
+
+                    if (files.length <= 1) {
+                        docsToggle.style.display = 'none';
+                        docsWrap.classList.remove('photos-collapsed-list');
+                    } else {
+                        let docsExpanded = false;
+                        docsToggle.style.display = 'inline-flex';
+                        docsToggle.textContent = 'Развернуть';
+                        docsWrap.classList.add('photos-collapsed-list');
+
+                        docsToggle.onclick = () => {
+                            docsExpanded = !docsExpanded;
+                            docsWrap.classList.toggle('photos-collapsed-list', !docsExpanded);
+                            docsToggle.textContent = docsExpanded ? 'Свернуть' : 'Развернуть';
+                        };
+                    }
+                })
+                .catch(() => {});
+        }
+
+        if (data.folder_receipts) {
+            fetch('https://assistcloudai.xyz/webhook/portal-files?folder_id=' + encodeURIComponent(data.folder_receipts))
+                .then(r => r.json())
+                .then(d => {
+                    const files = d.files || [];
+                    if (files.length === 0) return;
+
+                    document.getElementById('receipts-section').style.display = 'block';
+
+                    const list = document.getElementById('receipts-list');
+                    const receiptsWrap = document.getElementById('receipts-wrap');
+                    const receiptsToggle = document.getElementById('receipts-toggle');
+
+                    list.innerHTML = files.map(f => {
+                        const type = escapeHtml(f.type || 'file');
+                        const isImage = (f.type || '') === 'image';
+                        const url = escapeHtml(
+                            isImage
+                                ? (f.full_url || f.thumb_url || f.view_url || '')
+                                : (f.view_url || '')
+                        );
+                        const title = escapeHtml(f.name || 'Чек');
+
+                        return '<button type="button" data-type="' + type + '" data-url="' + url + '" data-title="' + title + '" style="display:flex;align-items:center;gap:14px;padding:14px;background:rgba(255,255,255,0.05);border-radius:10px;border:0.5px solid var(--border);width:100%;text-align:left;cursor:pointer;">' +
+                            '<div style="width:38px;height:38px;background:var(--accent-light);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🧾</div>' +
+                            '<div style="font-size:14px;font-weight:500;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px;">' + title + '</div>' +
+                            '<div style="margin-left:auto;color:var(--muted);">Открыть</div>' +
+                            '</button>';
+                    }).join('');
+
+                    list.querySelectorAll('[data-url]').forEach(el => {
+                        el.onclick = () => {
+                            openFileModal({
+                                type: el.dataset.type === 'image' ? 'image' : 'doc',
+                                title: el.dataset.title || 'Чек',
+                                url: el.dataset.url || ''
+                            });
+                        };
+                    });
+
+                    if (!receiptsWrap || !receiptsToggle) return;
+
+                    if (files.length <= 1) {
+                        receiptsToggle.style.display = 'none';
+                        receiptsWrap.classList.remove('photos-collapsed-list');
+                    } else {
+                        let receiptsExpanded = false;
+                        receiptsToggle.style.display = 'inline-flex';
+                        receiptsToggle.textContent = 'Развернуть';
+                        receiptsWrap.classList.add('photos-collapsed-list');
+
+                        receiptsToggle.onclick = () => {
+                            receiptsExpanded = !receiptsExpanded;
+                            receiptsWrap.classList.toggle('photos-collapsed-list', !receiptsExpanded);
+                            receiptsToggle.textContent = receiptsExpanded ? 'Свернуть' : 'Развернуть';
+                        };
+                    }
+                })
+                .catch(() => {});
+        }
+
+        window._portalToken = token;
+        window._portalName = data.name;
+
+        if (data.folder_docs) {
+            window._folderDocs = data.folder_docs;
+            window._loadEstimate(data.folder_docs, data.advance_pct);
+        } else {
+            document.getElementById('est-loading').style.display = 'none';
+            document.getElementById('est-error').style.display = 'block';
+        }
+
+        const linkEl = document.getElementById('manager-link');
+        if (linkEl && data.contact_link) linkEl.href = data.contact_link;
+
+        document.getElementById('last-update').textContent = 'Данные не обновляются автоматически, обновите страницу самостоятельно';
+    }
+
+    async function init() {
+        const tg = window.Telegram?.WebApp;
+        const tgId = tg?.initDataUnsafe?.user?.id;
+        const token = getToken();
+
+        let apiUrl;
+        if (tgId) {
+            apiUrl = 'https://assistcloudai.xyz/webhook/portal-by-tgid?tg_id=' + encodeURIComponent(tgId);
+        } else if (token) {
+            apiUrl = API_BASE + '?token=' + encodeURIComponent(token);
+        } else {
+            document.getElementById('loader').style.display = 'none';
+            document.getElementById('error').style.display = 'flex';
+            return;
+        }
+
+        try {
+            const res = await fetch(apiUrl);
+            if (!res.ok) throw new Error('not found');
+            const data = await res.json();
+            if (!data.name || data.error) throw new Error('empty');
+
+            document.getElementById('loader').style.display = 'none';
+            document.getElementById('error').style.display = 'none';
+            document.getElementById('main').style.display = 'block';
+            render(data, token || data.portal_token);
+        } catch (e) {
+            document.getElementById('loader').style.display = 'none';
+            document.getElementById('error').style.display = 'flex';
+        }
+    }
+
+    init();
+
+
+    function switchTab(tab) {
+        document.getElementById('tab-content-main').style.display = tab === 'main' ? 'block' : 'none';
+        document.getElementById('tab-content-estimate').style.display = tab === 'estimate' ? 'block' : 'none';
+        document.getElementById('tab-main').style.color = tab === 'main' ? 'var(--accent)' : 'var(--muted)';
+        document.getElementById('tab-estimate').style.color = tab === 'estimate' ? 'var(--accent)' : 'var(--muted)';
+        if (tab === 'estimate') checkSignBar();
+        // sign-bar удалён
+    }
+
+    function fmtRub(n) {
+        const num = typeof n === 'string' ? parseFloat(n.replace(/[^\d.]/g,'')) : Number(n);
+        if (!num || isNaN(num)) return '—';
+        return num.toLocaleString('ru-RU', {minimumFractionDigits:0, maximumFractionDigits:0}) + ' ₽';
+    }
+
+    function parseEstimateCSV(csv) {
+        const lines = csv.split('\n').map(l => {
+            const cols = []; let cur = ''; let inQ = false;
+            for (let i = 0; i < l.length; i++) {
+                if (l[i] === '"') { inQ = !inQ; }
+                else if (l[i] === ',' && !inQ) { cols.push(cur.trim()); cur = ''; }
+                else { cur += l[i]; }
+            }
+            cols.push(cur.trim());
+            return cols;
+        });
+
+        const phases = [];
+        let curPhase = null, curSection = null, grandTotal = 0;
+
+        for (const c of lines) {
+            const col0 = String(c[0]||'').trim();
+            const col1 = String(c[1]||'').trim();
+            const col2 = String(c[2]||'').trim();
+            const col3 = String(c[3]||'').trim();
+            const col4 = String(c[4]||'').trim();
+            const col5 = String(c[5]||'').trim();
+
+            // Новый этап — "Этап №N" в col0
+            if (col0.startsWith('Этап №') || col0.startsWith('Этап №')) {
+                const etapNum = col0.replace('Этап №','').trim();
+                curPhase = { phase: 'Этап ' + etapNum, sections: [], phase_total: 0 };
+                phases.push(curPhase);
+                curSection = null;
+                continue;
+            }
+
+            // Заголовок раздела — col1 заканчивается на ":" нет цены
+            if (!col0 && col1 && col1.endsWith(':') && !col5) {
+                curSection = { title: col1.replace(/:$/, ''), items: [] };
+                if (curPhase) curPhase.sections.push(curSection);
+                continue;
+            }
+
+            // Итог этапа
+            if (col1.includes('Итоговая стоимость') && col5) {
+                const val = parseFloat(col5.replace(/[^\d.]/g,''));
+                if (curPhase && val) curPhase.phase_total = val;
+                continue;
+            }
+
+            // Гранд-итог
+            if (col1.includes('Итог:') && col2) {
+                grandTotal = parseFloat(col2.replace(/[^\d.]/g,'')) || grandTotal;
+                continue;
+            }
+            if (col1.includes('Общая стоимость') && col5) {
+                grandTotal = parseFloat(col5.replace(/[^\d.]/g,'')) || grandTotal;
+                continue;
+            }
+
+            // Позиция работы — есть название и цена
+            if (col1 && col5 && !col1.includes('Итого') && !col1.includes('стоимость') && !col1.includes('Этап')) {
+                const total = parseFloat(col5.replace(/[^\d.]/g,'')) || 0;
+                const unitP = parseFloat(col4.replace(/[^\d.]/g,'')) || 0;
+                if (!curSection) {
+                    curSection = { title: '', items: [] };
+                    if (curPhase) curPhase.sections.push(curSection);
+                }
+                curSection.items.push({
+                    num: col0 || '',
+                    name: col1,
+                    unit: col2,
+                    qty: parseFloat(col3) || 0,
+                    price_unit: unitP,
+                    price_total: total
+                });
+            }
+        }
+
+        // Считаем grandTotal если не нашли
+        if (!grandTotal) grandTotal = phases.reduce((s, p) => s + (p.phase_total || 0), 0);
+
+        return { phases, grand_total: grandTotal };
+    }
+
+    function renderEstimate(data) {
+        document.getElementById('est-loading').style.display = 'none';
+        if (!data || !data.phases || !data.phases.length) {
+            document.getElementById('est-error').style.display = 'block';
+            return;
+        }
+        document.getElementById('est-content').style.display = 'block';
+        document.getElementById('est-grand-total').textContent = fmtRub(data.grand_total);
+
+        // Считаем сколько внесено (сумма act_final по подписанным этапам)
+        const paidTotal = data.phases.reduce((s, p) => s + (p.signed && p.act_final ? p.act_final : 0), 0);
+        const paidPct = data.grand_total > 0 ? Math.min(100, Math.round(paidTotal / data.grand_total * 100)) : 0;
+        document.getElementById('est-paid-total').textContent = fmtRub(paidTotal);
+        setTimeout(() => { document.getElementById('est-paid-bar').style.width = paidPct + '%'; }, 100);
+
+        const container = document.getElementById('est-phases');
+        container.innerHTML = data.phases.map((phase, pi) => {
+
+            const hasAct = phase.act_total > 0;
+
+            const sections = phase.sections.map(sec => {
+                const rows = sec.items.map(item => {
+                    const hasActData = item.act_qty !== undefined;
+                    const diff = item.qty_diff || 0;
+                    const diffAbs = Math.abs(diff).toFixed(2).replace(/\.?0+$/, '');
+                    const diffColor = diff > 0.01 ? '#D32F2F' : diff < -0.01 ? '#4A7C59' : 'var(--muted)';
+                    const diffSign = diff > 0.01 ? '▲ +' : diff < -0.01 ? '▼ −' : '';
+                    const diffText = hasActData && diff !== 0 ? `<span style="color:${diffColor};font-size:11px;font-weight:600;margin-left:4px;">${diffSign}${diffAbs}</span>` : '';
+                    const qtyDisplay = hasActData
+                        ? (diff === 0
+                            ? `<span style="font-weight:600;">${+Number(item.act_qty).toFixed(2)}</span>`
+                            : `<span style="color:var(--ink-soft);text-decoration:line-through;font-size:11px;">${+Number(item.qty).toFixed(2)}</span> → <span style="color:${diffColor};font-weight:600;">${+Number(item.act_qty).toFixed(2)}</span>${diffText}`)
+                        : `${item.qty}`;
+
+                    const priceDisplay = hasActData
+                        ? (diff === 0
+                            ? `<div style="font-weight:600;color:var(--ink);text-align:right;white-space:nowrap;">${fmtRub(item.act_total)}</div>`
+                            : `<div style="font-weight:600;color:var(--ink);text-align:right;white-space:nowrap;">${fmtRub(item.act_total)}</div>
+                               <div style="font-size:11px;color:var(--muted);text-align:right;text-decoration:line-through;">${fmtRub(item.price_total)}</div>`)
+                        : `<div style="font-weight:600;color:var(--ink);text-align:right;white-space:nowrap;">${fmtRub(item.price_total)}</div>`;
+                    const rowStyle = hasAct && !hasActData
+                        ? `opacity:0.4;`
+                        : ``;
+                    return `<div style="display:grid;grid-template-columns:22px 1fr auto;gap:6px;padding:10px 14px;border-bottom:1px solid var(--border);font-size:13px;align-items:start;${rowStyle}">
+                        <div style="color:var(--muted);font-size:11px;padding-top:2px;">${escapeHtml(String(item.num))}</div>
+                        <div>
+                            <div style="color:var(--ink);line-height:1.35;${hasAct && !hasActData ? 'text-decoration:line-through;' : ''}">${escapeHtml(item.name)}</div>
+                            <div style="font-size:11px;color:var(--ink-soft);margin-top:2px;">${qtyDisplay} ${escapeHtml(item.unit)} × ${fmtRub(item.price_unit)}</div>
+                        </div>
+                        <div>${priceDisplay}</div>
+                    </div>`;
+                }).join('');
+                const secTitle = sec.title ? `<div style="padding:8px 14px 4px;font-size:11px;font-weight:600;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.05em;border-top:1px solid var(--border);">${escapeHtml(sec.title)}</div>` : '';
+                return secTitle + rows;
+            }).join('');
+
+            const extraItems = phase.extra_items || [];
+            const extraBlock = extraItems.length > 0 ? `
+                <div style="border-top:2px solid var(--accent-light);">
+                    <div style="padding:8px 14px 4px;font-size:11px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.05em;">+ Доп. работы</div>
+                    ${extraItems.map(item => `
+                        <div style="display:grid;grid-template-columns:1fr auto;gap:6px;padding:10px 14px;border-bottom:1px solid var(--border);font-size:13px;align-items:start;">
+                            <div>
+                                <div style="color:var(--ink);line-height:1.35;">${escapeHtml(item.name)}</div>
+                                <div style="font-size:11px;color:var(--ink-soft);margin-top:2px;">${item.qty} ${escapeHtml(item.unit)} × ${fmtRub(item.price_unit)}</div>
+                            </div>
+                            <div style="font-weight:600;color:var(--accent);text-align:right;white-space:nowrap;">${fmtRub(item.price_total)}</div>
+                        </div>`).join('')}
+                </div>` : '';
+
+            const actBlock = hasAct ? `
+                <div style="border-top:2px solid var(--border);background:var(--bg);padding:14px 16px;display:flex;flex-direction:column;gap:8px;">
+                    <div style="display:flex;justify-content:space-between;font-size:13px;">
+                        <span style="color:var(--ink-soft);">По договору</span>
+                        <span style="color:var(--ink-soft);text-decoration:line-through;">${fmtRub(phase.phase_total)}</span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;font-size:13px;">
+                        <span style="color:var(--ink-soft);">Факт СМР</span>
+                        <span style="font-weight:600;color:var(--ink);">${fmtRub(phase.act_total - (phase.act_extra_total || 0))}</span>
+                    </div>
+                    ${extraItems.length > 0 ? `<div style="display:flex;justify-content:space-between;font-size:13px;">
+                        <span style="color:var(--accent);">+ Доп. работы</span>
+                        <span style="font-weight:600;color:var(--accent);">${fmtRub(extraItems.reduce((s,i) => s + (i.price_total||0), 0))}</span>
+                    </div>` : ''}
+                    <div style="display:flex;justify-content:space-between;font-size:14px;font-weight:700;padding-top:8px;border-top:1px solid var(--border);">
+                        <span style="color:var(--ink);">Итого к оплате</span>
+                        <span style="color:var(--ink);">${fmtRub(phase.act_final)}</span>
+                    </div>
+                    ${!phase.act_pay_is_manual ? `<div style="display:flex;justify-content:space-between;font-size:13px;">
+                        <span style="color:var(--ink-soft);">Аванс (${Math.round((phase.act_advance / phase.phase_total) * 100)}%)</span>
+                        <span style="color:var(--ink-soft);">−${fmtRub(phase.act_advance)}</span>
+                    </div>` : ''}
+                    <div style="display:flex;justify-content:space-between;font-size:15px;font-weight:700;padding-top:8px;border-top:1px solid var(--border);">
+                        <span style="color:var(--ink);">К доплате</span>
+                        <span style="color:var(--accent);">${fmtRub(phase.act_to_pay)}</span>
+                    </div>
+                    ${phase.act_pay_is_manual && phase.act_pay_comment ? `<div style="font-size:12px;color:var(--ink-soft);padding-top:4px;">
+                        ${escapeHtml(phase.act_pay_comment)}
+                    </div>` : ''}
+                </div>` : '';
+
+            const extraTotal = extraItems.reduce((s, i) => s + (i.price_total || 0), 0);
+            const badgeTotal = hasAct ? fmtRub(phase.act_final) : fmtRub(phase.phase_total + extraTotal);
+
+            return `<div style="border:0.5px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:8px;background:var(--surface);">
+                <div onclick="togglePhase(${pi})" style="display:flex;align-items:center;gap:10px;padding:14px 16px;cursor:pointer;background:var(--surface);">
+                    <span style="font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;background:var(--accent-light);color:var(--accent);padding:4px 10px;border-radius:100px;flex-shrink:0;">${escapeHtml(phase.phase)}</span>
+                    <span style="flex:1;font-size:13px;font-weight:600;color:var(--ink);">${badgeTotal}</span>
+                    ${phase.signed ? '<span style="font-size:11px;background:rgba(74,222,128,0.15);color:#4ade80;padding:2px 8px;border-radius:100px;font-weight:600;">Закрыт</span>' : hasAct ? '<span style="font-size:11px;background:rgba(96,176,255,0.15);color:#60b0ff;padding:2px 8px;border-radius:100px;font-weight:600;">На подписании</span>' : ''}
+                    <span id="chev-${pi}" style="color:var(--muted);font-size:11px;transition:transform .2s;">▼</span>
+                </div>
+                <div id="phase-rows-${pi}" style="display:none;">${sections}${extraBlock}${actBlock}</div>
+            </div>`;
+        }).join('');
+    }
+
+    function togglePhase(i) {
+        const rows = document.getElementById('phase-rows-' + i);
+        const chev = document.getElementById('chev-' + i);
+        const open = rows.style.display !== 'none';
+        rows.style.display = open ? 'none' : 'block';
+        chev.style.transform = open ? '' : 'rotate(180deg)';
+    }
+
+    async function loadEstimate(folderDocs, advancePct) {
+        try {
+            const res = await fetch(`https://assistcloudai.xyz/webhook/estimate?folder_docs=${folderDocs}&advance_pct=${advancePct}&_=${Date.now()}`);
+            const data = await res.json();
+            _estimateData = data;
+            renderEstimate(data);
+            checkSignBar();
+        } catch(e) {
+            document.getElementById('est-loading').style.display = 'none';
+            document.getElementById('est-error').style.display = 'block';
+        }
+    }
+
+    window._loadEstimate = loadEstimate;
+
+    // ===== ПОДПИСЬ АКТА =====
+    let _signPhaseIndex = null;
+    let _estimateData = null;
+
+    function checkSignBar() {
+        if (!_estimateData || !_estimateData.phases) return;
+        const idx = _estimateData.phases.findIndex(p => p.act_total > 0 && !p.signed);
+        _signPhaseIndex = idx >= 0 ? idx : null;
+        updateMainAction();
+        updateActionBanner();
+    }
+
+    let _alertShown = false;
+
+    function updateActionBanner() {
+        const overlay = document.getElementById('action-alert-overlay');
+        if (!overlay) return;
+        if (_signPhaseIndex !== null && !_alertShown) {
+            const phase = _estimateData.phases[_signPhaseIndex];
+            document.getElementById('alert-title').textContent = phase.phase;
+            overlay.style.display = 'flex';
+            document.body.classList.add('modal-open');
+            _alertShown = true;
+        } else if (_signPhaseIndex === null) {
+            overlay.style.display = 'none';
+            document.body.classList.remove('modal-open');
+        }
+    }
+
+    function alertGoToSign() {
+        document.getElementById('action-alert-overlay').style.display = 'none';
+        document.body.classList.remove('modal-open');
+        switchTab('estimate');
+        setTimeout(openSignModal, 300);
+    }
+
+    function alertClose() {
+        document.getElementById('action-alert-overlay').style.display = 'none';
+        document.body.classList.remove('modal-open');
+    }
+
+    function updateMainAction() {
+        const btn = document.getElementById('main-action-btn');
+        if (!btn) return;
+        if (_signPhaseIndex !== null) {
+            btn.textContent = 'Подписать акт';
+            btn.onclick = openSignModal;
+            document.getElementById('estimate-dot').style.display = 'inline-block';
+        } else {
+            btn.textContent = 'Реквизиты для оплаты';
+            btn.onclick = openReqModal;
+            document.getElementById('estimate-dot').style.display = 'none';
+        }
+    }
+
+    function openReqModal() {
+        if (!_estimateData || !_estimateData.phases) return;
+        const phases = _estimateData.phases;
+        let actToPay = 0, advanceNext = 0, advanceNextPhase = null, phaseName = '';
+        // Берём последний этап у которого есть акт (act_total > 0), независимо от signed
+        let lastActIdx = -1;
+        for (let i = 0; i < phases.length; i++) {
+            if (phases[i].act_total > 0) lastActIdx = i;
+        }
+        if (lastActIdx >= 0) {
+            const p = phases[lastActIdx];
+            actToPay = p.act_to_pay || 0;
+            phaseName = p.phase;
+            const advancePct = p.phase_total > 0 ? (p.act_advance / p.phase_total) : 0;
+            if (phases[lastActIdx + 1]) {
+                advanceNext = Math.round((phases[lastActIdx + 1].phase_total || 0) * advancePct);
+                advanceNextPhase = phases[lastActIdx + 1].phase;
+            }
+        }
+        const total = actToPay + advanceNext;
         showPaymentScreen({
-          phase: payload.phase,
-          act_to_pay: payload.act_to_pay,
-          advance_next: payload.advance_next,
-          advance_next_phase: payload.advance_next_phase,
-          total_to_pay: payload.total_to_pay,
-          signed_at: payload.signed_at
+            phase: phaseName || 'Текущий этап',
+            act_to_pay: actToPay,
+            advance_next: advanceNext,
+            advance_next_phase: advanceNextPhase,
+            total_to_pay: total,
+            signed_at: null
         });
-      } else {
-        btn.disabled = false;
-        btnText.textContent = 'Подтвердить';
-        spinner.style.display = 'none';
-        alert('Ошибка. Попробуйте ещё раз.');
-      }
-    } catch(e) {
-      btn.disabled = false;
-      btnText.textContent = 'Подтвердить';
-      spinner.style.display = 'none';
-      alert('Ошибка соединения. Попробуйте ещё раз.');
-    }
-  }
-
-function showPaymentScreen(data) {
-    const fmt = n => Number(n).toLocaleString('ru-RU') + ' ₽';
-    const phone = '+79667601666'; // ← номер для перевода
-    const fromSign = !!data.signed_at;
-    document.getElementById('pay-phase').textContent = data.phase || '';
-    const dateEl = document.getElementById('pay-date');
-    if (fromSign) {
-      dateEl.textContent = data.signed_at + ' · Подтверждение отправлено в Telegram';
-      dateEl.style.display = 'block';
-    } else {
-      dateEl.style.display = 'none';
-    }
-    document.getElementById('pay-balance').textContent = fmt(data.act_to_pay);
-    const advRow = document.getElementById('pay-adv-row');
-    if (data.advance_next > 0) {
-      document.getElementById('pay-adv-label').textContent = 'Аванс за ' + (data.advance_next_phase || 'следующий этап') + ':';
-      document.getElementById('pay-adv').textContent = fmt(data.advance_next);
-      advRow.style.display = 'flex';
-    } else {
-      advRow.style.display = 'none';
-    }
-    document.getElementById('pay-total').textContent = fmt(data.total_to_pay);
-    document.getElementById('pay-phone-display').textContent = phone;
-    document.getElementById('pay-amount-display').textContent = fmt(data.total_to_pay);
-    window._payPhone = phone;
-    window._payAmount = String(Math.round(data.total_to_pay));
-    document.getElementById('pay-modal').style.display = 'flex';
-    document.body.classList.add('modal-open');
-  }
-
-  function copyPayPhone() {
-    navigator.clipboard.writeText(window._payPhone || '').then(() => {
-      const btn = document.getElementById('copy-phone-btn');
-      btn.textContent = 'Скопировано ✓';
-      setTimeout(() => btn.textContent = 'Скопировать', 2000);
-    });
-  }
-
-  function copyPayAmount() {
-    navigator.clipboard.writeText(window._payAmount || '').then(() => {
-      const btn = document.getElementById('copy-amount-btn');
-      btn.textContent = 'Скопировано ✓';
-      setTimeout(() => btn.textContent = 'Скопировать', 2000);
-    });
-  }
-
-  function closePayModal() {
-    document.getElementById('pay-modal').style.display = 'none';
-    document.body.classList.remove('modal-open');
-  }
-  
-  async function confirmPayment() {
-    const amount = document.getElementById('payment-amount')?.value;
-    if (!amount || isNaN(amount) || Number(amount) <= 0) {
-      alert('Введите сумму перевода');
-      return;
     }
 
-    const btn = document.getElementById('payment-confirm-btn');
-    if (btn) {
-      btn.disabled = true;
-      btn.textContent = 'Отправляем...';
+    function openSignModal() {
+        if (_signPhaseIndex === null || !_estimateData) return;
+        const phase = _estimateData.phases[_signPhaseIndex];
+        document.getElementById('sign-phase-label').textContent = phase.phase + ' · ' + fmtRub(phase.act_final);
+        document.getElementById('sign-phone').value = '';
+        const modal = document.getElementById('sign-modal');
+        modal.style.display = 'flex';
+        document.body.classList.add('modal-open');
     }
 
-    try {
-      await fetch('https://assistcloudai.xyz/webhook/portal-payment', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          token: window._portalToken,
-          amount: Number(amount),
-          name: window._portalName
-        })
-      });
-      const form = document.getElementById('payment-form');
-      const success = document.getElementById('payment-success');
-      if (form) form.style.display = 'none';
-      if (success) success.style.display = 'block';
-    } catch (e) {
-      if (btn) {
-        btn.disabled = false;
-        btn.textContent = 'Я оплатил';
-      }
-      alert('Ошибка. Попробуйте ещё раз.');
+    function closeSignModal() {
+        document.getElementById('sign-modal').style.display = 'none';
+        document.body.classList.remove('modal-open');
     }
-  }
+
+    async function submitSign() {
+        const phone = document.getElementById('sign-phone').value.trim();
+        if (!phone || phone.replace(/\D/g,'').length < 10) {
+            alert('Введите корректный номер телефона');
+            return;
+        }
+        // Показываем кружок
+        const btn = document.getElementById('sign-submit-btn');
+        const btnText = document.getElementById('sign-submit-text');
+        const spinner = document.getElementById('sign-submit-spinner');
+        btn.disabled = true;
+        btnText.textContent = 'Отправляем...';
+        spinner.style.display = 'inline-block';
+        const phase = _estimateData.phases[_signPhaseIndex];
+        const nextPhase = _estimateData.phases[_signPhaseIndex + 1];
+        const advancePct = phase.act_advance / phase.phase_total;
+        const advanceNext = nextPhase ? Math.round(nextPhase.phase_total * advancePct) : 0;
+        const totalToPay = (phase.act_to_pay || 0) + advanceNext;
+        const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
+        const payload = {
+            phase: phase.phase,
+            act_final: phase.act_final,
+            act_to_pay: phase.act_to_pay || 0,
+            advance_next: advanceNext,
+            advance_next_phase: nextPhase ? nextPhase.phase : null,
+            total_to_pay: totalToPay,
+            phone,
+            telegram_id: tgUser?.id || null,
+            telegram_name: tgUser?.first_name || null,
+            signed_at: new Date().toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
+            folder_docs: window._folderDocs || null
+        };
+        try {
+            const res = await fetch('https://assistcloudai.xyz/webhook/sign-act', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (res.ok) {
+                phase.signed = true;
+                closeSignModal();
+                const _signedIdx = _signPhaseIndex;
+                _signPhaseIndex = null; updateMainAction(); updateActionBanner();
+                // Обновляем badge этапа без перезагрузки
+                const phaseEl = document.querySelector(`#phase-rows-${_signedIdx}`)?.previousElementSibling;
+                if (phaseEl) {
+                    const oldBadge = phaseEl.querySelector('span[style*="rgba(96,176"]');
+                    if (oldBadge) {
+                        oldBadge.style.background = 'rgba(74,222,128,0.15)';
+                        oldBadge.style.color = '#4ade80';
+                        oldBadge.textContent = 'Закрыт';
+                    }
+                }
+                showPaymentScreen({
+                    phase: payload.phase,
+                    act_to_pay: payload.act_to_pay,
+                    advance_next: payload.advance_next,
+                    advance_next_phase: payload.advance_next_phase,
+                    total_to_pay: payload.total_to_pay,
+                    signed_at: payload.signed_at
+                });
+            } else {
+                btn.disabled = false;
+                btnText.textContent = 'Подтвердить';
+                spinner.style.display = 'none';
+                alert('Ошибка. Попробуйте ещё раз.');
+            }
+        } catch(e) {
+            btn.disabled = false;
+            btnText.textContent = 'Подтвердить';
+            spinner.style.display = 'none';
+            alert('Ошибка соединения. Попробуйте ещё раз.');
+        }
+    }
+
+    function showPaymentScreen(data) {
+        const fmt = n => Number(n).toLocaleString('ru-RU') + ' ₽';
+        const phone = '+79667601666'; // ← номер для перевода
+        const fromSign = !!data.signed_at;
+        document.getElementById('pay-phase').textContent = data.phase || '';
+        const dateEl = document.getElementById('pay-date');
+        if (fromSign) {
+            dateEl.textContent = data.signed_at + ' · Подтверждение отправлено в Telegram';
+            dateEl.style.display = 'block';
+        } else {
+            dateEl.style.display = 'none';
+        }
+        document.getElementById('pay-balance').textContent = fmt(data.act_to_pay);
+        const advRow = document.getElementById('pay-adv-row');
+        if (data.advance_next > 0) {
+            document.getElementById('pay-adv-label').textContent = 'Аванс за ' + (data.advance_next_phase || 'следующий этап') + ':';
+            document.getElementById('pay-adv').textContent = fmt(data.advance_next);
+            advRow.style.display = 'flex';
+        } else {
+            advRow.style.display = 'none';
+        }
+        document.getElementById('pay-total').textContent = fmt(data.total_to_pay);
+        document.getElementById('pay-phone-display').textContent = phone;
+        document.getElementById('pay-amount-display').textContent = fmt(data.total_to_pay);
+        window._payPhone = phone;
+        window._payAmount = String(Math.round(data.total_to_pay));
+        document.getElementById('pay-modal').style.display = 'flex';
+        document.body.classList.add('modal-open');
+    }
+
+    function copyPayPhone() {
+        navigator.clipboard.writeText(window._payPhone || '').then(() => {
+            const btn = document.getElementById('copy-phone-btn');
+            btn.textContent = 'Скопировано ✓';
+            setTimeout(() => btn.textContent = 'Скопировать', 2000);
+        });
+    }
+
+    function copyPayAmount() {
+        navigator.clipboard.writeText(window._payAmount || '').then(() => {
+            const btn = document.getElementById('copy-amount-btn');
+            btn.textContent = 'Скопировано ✓';
+            setTimeout(() => btn.textContent = 'Скопировать', 2000);
+        });
+    }
+
+    function closePayModal() {
+        document.getElementById('pay-modal').style.display = 'none';
+        document.body.classList.remove('modal-open');
+    }
+    
+    async function confirmPayment() {
+        const amount = document.getElementById('payment-amount')?.value;
+        if (!amount || isNaN(amount) || Number(amount) <= 0) {
+            alert('Введите сумму перевода');
+            return;
+        }
+
+        const btn = document.getElementById('payment-confirm-btn');
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = 'Отправляем...';
+        }
+
+        try {
+            await fetch('https://assistcloudai.xyz/webhook/portal-payment', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    token: window._portalToken,
+                    amount: Number(amount),
+                    name: window._portalName
+                })
+            });
+            const form = document.getElementById('payment-form');
+            const success = document.getElementById('payment-success');
+            if (form) form.style.display = 'none';
+            if (success) success.style.display = 'block';
+        } catch (e) {
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = 'Я оплатил';
+            }
+            alert('Ошибка. Попробуйте ещё раз.');
+        }
+    }
 </script>
 
 <nav style="position:fixed;bottom:0;left:0;right:0;background:rgba(19,21,31,0.95);border-top:0.5px solid rgba(255,255,255,0.09);display:flex;z-index:100;padding-bottom:env(safe-area-inset-bottom,0px);">
-  <button onclick="switchTab('main')" id="tab-main" style="flex:1;padding:12px 0;border:none;background:none;font-family:'Manrope',sans-serif;font-size:12px;font-weight:600;color:var(--accent);display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H5a1 1 0 01-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg>
-    Объект
-  </button>
-  <button onclick="switchTab('estimate')" id="tab-estimate" style="flex:1;padding:12px 0;border:none;background:none;font-family:'Manrope',sans-serif;font-size:12px;font-weight:600;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;">
-    <span style="position:relative;display:inline-block;">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 7h6M9 11h6M9 15h4"/></svg>
-      <span id="estimate-dot" style="display:none;position:absolute;top:-2px;right:-4px;width:8px;height:8px;background:#D32F2F;border-radius:50%;border:1.5px solid #13151f;"></span>
-    </span>
-    Смета
-  </button>
+    <button onclick="switchTab('main')" id="tab-main" style="flex:1;padding:12px 0;border:none;background:none;font-family:'Manrope',sans-serif;font-size:12px;font-weight:600;color:var(--accent);display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H5a1 1 0 01-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg>
+        Объект
+    </button>
+    <button onclick="switchTab('estimate')" id="tab-estimate" style="flex:1;padding:12px 0;border:none;background:none;font-family:'Manrope',sans-serif;font-size:12px;font-weight:600;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;">
+        <span style="position:relative;display:inline-block;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 7h6M9 11h6M9 15h4"/></svg>
+            <span id="estimate-dot" style="display:none;position:absolute;top:-2px;right:-4px;width:8px;height:8px;background:#D32F2F;border-radius:50%;border:1.5px solid #13151f;"></span>
+        </span>
+        Смета
+    </button>
 </nav>
 
 </body>
