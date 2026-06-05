@@ -1184,7 +1184,7 @@
     const pct = calcProgress(data.date_start, data.date_end);
     document.getElementById('progress-pct').textContent = pct + '%';
     setTimeout(() => { document.getElementById('progress-fill').style.width = pct + '%'; }, 100);
-    document.getElementById('date-start-label').textContent = 'Пройдено: ' + (data.days_passed || '—');
+    document.getElementById('days-passed-label').textContent = 'Пройдено: ' + (data.days_passed || '—');
     document.getElementById('days-left-label').textContent = 'Осталось: ' + (data.days_left || '—');
     document.getElementById('date-start').textContent = formatDate(data.date_start);
     document.getElementById('date-end').textContent = formatDate(data.date_end);
@@ -1660,28 +1660,24 @@
       return;
     }
     try {
-      console.log('[portal] fetching:', apiUrl);
       const res = await fetch(apiUrl);
       if (!res.ok) throw new Error('HTTP ' + res.status);
       const data = await res.json();
-      console.log('[portal] data:', JSON.stringify(data).slice(0, 200));
-      if (!data.name || data.error) throw new Error('empty: name=' + data.name + ' error=' + data.error);
+      if (!data.name || data.error) throw new Error('empty');
       document.getElementById('loader').style.display = 'none';
       document.getElementById('app').style.display = 'block';
       render(data, token || data.portal_token);
     } catch(e) {
       document.getElementById('loader').style.display = 'none';
-      const errScreen = document.getElementById('error-screen');
-      errScreen.style.display = 'flex';
-      // Показываем детали для отладки
-      const dbg = document.createElement('div');
-      dbg.style.cssText = 'font-size:11px;color:#aaa;margin-top:16px;padding:0 24px;word-break:break-all;text-align:left;max-width:340px;';
-      dbg.textContent = 'URL: ' + apiUrl + ' | err: ' + e.message;
-      errScreen.appendChild(dbg);
+      document.getElementById('error-screen').style.display = 'flex';
     }
   }
 
-  init();
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
 </script>
 </body>
 </html>
