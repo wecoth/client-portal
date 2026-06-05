@@ -726,30 +726,6 @@
           </div>
         </div>
 
-        <!-- Photos section -->
-        <div id="photos-section" style="display:none;">
-          <div class="card" style="padding:16px 20px 12px;">
-            <div class="card-content">
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-                <div class="progress-label" style="margin-bottom:0;">Фото с объекта</div>
-                <button id="photos-toggle" class="tab-btn" style="padding:6px 12px;font-size:12px;display:none;">Развернуть</button>
-              </div>
-              <div id="photos-wrap">
-                <div id="photos-grid" class="gallery"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Manager -->
-        <div class="card manager-card">
-          <div class="card-content">
-            <div class="manager-label">Быстрый переход</div>
-            <div class="manager-name">Чат в Telegram</div>
-            <a class="btn btn-primary" id="manager-link" href="#" style="text-decoration:none;">Перейти</a>
-          </div>
-        </div>
-
         <div class="last-update">Данные не обновляются автоматически — обновите страницу</div>
 
       </div><!-- /screen-object -->
@@ -1193,10 +1169,6 @@
     document.getElementById('fin-paid').textContent = '...';
     document.getElementById('fin-total-sub').textContent = '...';
 
-    // Manager link
-    const linkEl = document.getElementById('manager-link');
-    if (linkEl && data.contact_link) linkEl.href = data.contact_link;
-
     window._portalToken = token;
     window._portalName = data.name;
 
@@ -1225,39 +1197,6 @@
           if (!photos.length) { document.getElementById('files-photos-empty').style.display = 'block'; return; }
 
           _photoGallery = photos.map(f => ({ url: f.full_url || f.thumb_url || f.view_url || '', title: f.name || 'Фото' }));
-
-          // Object screen photos
-          document.getElementById('photos-section').style.display = 'block';
-          const grid = document.getElementById('photos-grid');
-          const wrap = document.getElementById('photos-wrap');
-          const toggleBtn = document.getElementById('photos-toggle');
-
-          grid.innerHTML = photos.slice(0, 4).map((f, i) =>
-            `<button type="button" class="gallery-item" data-index="${i}"><img src="${escapeHtml(f.thumb_url || f.view_url || '')}" loading="lazy"></button>`
-          ).join('');
-          grid.querySelectorAll('[data-index]').forEach(el => { el.onclick = () => openPhotoModal(parseInt(el.dataset.index)); });
-
-          if (photos.length > 4) {
-            toggleBtn.style.display = 'inline-flex';
-            toggleBtn.textContent = 'Показать все (' + photos.length + ')';
-            let expanded = false;
-            toggleBtn.onclick = () => {
-              expanded = !expanded;
-              if (expanded) {
-                grid.innerHTML = photos.map((f, i) =>
-                  `<button type="button" class="gallery-item" data-index="${i}"><img src="${escapeHtml(f.thumb_url || f.view_url || '')}" loading="lazy"></button>`
-                ).join('');
-                grid.querySelectorAll('[data-index]').forEach(el => { el.onclick = () => openPhotoModal(parseInt(el.dataset.index)); });
-                toggleBtn.textContent = 'Свернуть';
-              } else {
-                grid.innerHTML = photos.slice(0, 4).map((f, i) =>
-                  `<button type="button" class="gallery-item" data-index="${i}"><img src="${escapeHtml(f.thumb_url || f.view_url || '')}" loading="lazy"></button>`
-                ).join('');
-                grid.querySelectorAll('[data-index]').forEach(el => { el.onclick = () => openPhotoModal(parseInt(el.dataset.index)); });
-                toggleBtn.textContent = 'Показать все (' + photos.length + ')';
-              }
-            };
-          }
 
           // Files screen gallery
           const fGrid = document.getElementById('files-photos-grid');
