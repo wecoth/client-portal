@@ -6,8 +6,8 @@
   <title>Мой объект</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script>
-    window.Telegram?.WebApp?.expand();
-    window.Telegram?.WebApp?.requestFullscreen?.();
+    try { window.Telegram?.WebApp?.expand(); } catch(e) {}
+    try { window.Telegram?.WebApp?.requestFullscreen?.(); } catch(e) {}
   </script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
