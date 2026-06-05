@@ -1316,13 +1316,45 @@
         const rows = sec.items.map(item => {
           const diff = item.qty_diff || 0;
           const hasActData = item.act_qty !== undefined;
-          const priceStr = hasActData ? fmtRub(item.act_total) : fmtRub(item.price_total);
           const opacity = hasAct && !hasActData ? 'opacity:0.4;' : '';
+
+          // Количество: если есть акт — показываем было → стало + дельта
+          let qtyDisplay;
+          if (hasActData) {
+            if (diff === 0) {
+              qtyDisplay = `<span style="font-weight:600;">${+Number(item.act_qty).toFixed(2)}</span>`;
+            } else {
+              const diffAbs = Math.abs(diff).toFixed(2).replace(/\.?0+$/, '');
+              const diffColor = diff > 0.01 ? '#D32F2F' : '#4A7C59';
+              const diffSign = diff > 0.01 ? '▲ +' : '▼ −';
+              qtyDisplay = `<span style="color:#999;text-decoration:line-through;font-size:11px;">${+Number(item.qty).toFixed(2)}</span>`
+                + ` → <span style="color:${diffColor};font-weight:600;">${+Number(item.act_qty).toFixed(2)}</span>`
+                + ` <span style="color:${diffColor};font-size:11px;font-weight:600;">${diffSign}${diffAbs}</span>`;
+            }
+          } else {
+            qtyDisplay = `${item.qty}`;
+          }
+
+          // Цена: если есть акт — показываем фактическую, зачёркиваем договорную если изменилась
+          let priceDisplay;
+          if (hasActData) {
+            if (diff === 0) {
+              priceDisplay = `<div style="font-weight:600;color:#1a1a1a;text-align:right;white-space:nowrap;">${fmtRub(item.act_total)}</div>`;
+            } else {
+              priceDisplay = `<div style="font-weight:600;color:#1a1a1a;text-align:right;white-space:nowrap;">${fmtRub(item.act_total)}</div>`
+                + `<div style="font-size:11px;color:#999;text-align:right;text-decoration:line-through;">${fmtRub(item.price_total)}</div>`;
+            }
+          } else {
+            priceDisplay = `<div style="font-weight:600;color:#1a1a1a;text-align:right;white-space:nowrap;">${fmtRub(item.price_total)}</div>`;
+          }
+
           return `<div class="phase-row" style="${opacity}">
             <div class="phase-row-num">${escapeHtml(String(item.num))}</div>
-            <div><div class="phase-row-name">${escapeHtml(item.name)}</div>
-            <div class="phase-row-sub">${item.qty} ${escapeHtml(item.unit)} × ${fmtRub(item.price_unit)}</div></div>
-            <div class="phase-row-price">${priceStr}</div>
+            <div>
+              <div class="phase-row-name" style="${hasAct && !hasActData ? 'text-decoration:line-through;color:#bbb;' : ''}">${escapeHtml(item.name)}</div>
+              <div class="phase-row-sub">${qtyDisplay} ${escapeHtml(item.unit)} × ${fmtRub(item.price_unit)}</div>
+            </div>
+            <div>${priceDisplay}</div>
           </div>`;
         }).join('');
         return secTitle + rows;
