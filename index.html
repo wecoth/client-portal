@@ -138,6 +138,11 @@
     .screen { display: none; padding: 20px; }
     .screen.active { display: block; }
 
+    /* На мобиле первый экран получает отступ сверху под кнопки Telegram */
+    @media (max-width: 430px) {
+      .screen { padding-top: calc(env(safe-area-inset-top, 0px) + 64px); }
+    }
+
     /* ── CARDS ── */
     .card {
       background: white;
@@ -439,6 +444,15 @@
     }
     .gallery-item:active { transform: scale(0.95); }
     .gallery-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .gallery-caption {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      padding: 18px 6px 5px;
+      background: linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 100%);
+      color: white; font-size: 10px; font-weight: 500;
+      line-height: 1.2; text-align: left;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      pointer-events: none;
+    }
 
     /* File item */
     .file-item {
@@ -929,7 +943,10 @@
 <!-- ══ iOS PHOTO VIEWER ══ -->
 <div id="ios-viewer" class="ios-viewer">
   <div class="ios-viewer-topbar">
-    <div class="ios-viewer-counter" id="ios-viewer-counter">1 / 1</div>
+    <div style="display:flex;flex-direction:column;gap:2px;">
+      <div class="ios-viewer-counter" id="ios-viewer-counter">1 / 1</div>
+      <div id="ios-viewer-title" style="color:rgba(255,255,255,0.6);font-size:12px;max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></div>
+    </div>
     <button class="ios-viewer-close" id="ios-viewer-close">Готово</button>
   </div>
   <div class="ios-viewer-main" id="ios-viewer-main">
@@ -1077,6 +1094,8 @@
     const img = document.getElementById('ios-viewer-img');
     img.src = p.url;
     document.getElementById('ios-viewer-counter').textContent = (i + 1) + ' / ' + _gallery.length;
+    const titleEl = document.getElementById('ios-viewer-title');
+    if (titleEl) titleEl.textContent = p.title || '';
     // Update strip active
     document.querySelectorAll('.ios-viewer-thumb').forEach((el, idx) => {
       el.classList.toggle('active', idx === i);
@@ -1202,13 +1221,17 @@
           document.getElementById('files-photos-loading').style.display = 'none';
           if (!photos.length) { document.getElementById('files-photos-empty').style.display = 'block'; return; }
 
-          _gallery = photos.map(f => ({ url: f.full_url || f.thumb_url || f.view_url || '', thumb: f.thumb_url || f.view_url || '', title: f.name || 'Фото' }));
+          _gallery = photos.map(f => ({ url: f.full_url || f.thumb_url || f.view_url || '', thumb: f.thumb_url || f.view_url || '', title: (f.name || 'Фото').replace(/\.\w+$/, '') }));
 
           // Files screen gallery
           const fGrid = document.getElementById('files-photos-grid');
-          fGrid.innerHTML = photos.map((f, i) =>
-            `<button type="button" class="gallery-item" data-index="${i}"><img src="${escapeHtml(f.thumb_url || f.view_url || '')}" loading="lazy"></button>`
-          ).join('');
+          fGrid.innerHTML = photos.map((f, i) => {
+            const cap = (f.name || '').replace(/\.\w+$/, '');
+            return `<button type="button" class="gallery-item" data-index="${i}">` +
+              `<img src="${escapeHtml(f.thumb_url || f.view_url || '')}" loading="lazy">` +
+              (cap ? `<div class="gallery-caption">${escapeHtml(cap)}</div>` : '') +
+              `</button>`;
+          }).join('');
           fGrid.querySelectorAll('[data-index]').forEach(el => { el.onclick = () => openPhotoModal(parseInt(el.dataset.index)); });
         })
         .catch(() => { document.getElementById('files-photos-loading').style.display = 'none'; document.getElementById('files-photos-empty').style.display = 'block'; });
