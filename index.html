@@ -128,7 +128,6 @@
       overflow-y: auto;
       overflow-x: hidden;
       position: relative;
-      padding-bottom: 60px; /* nav height */
     }
 
     .viewport::-webkit-scrollbar { width: 4px; }
@@ -473,12 +472,13 @@
 
     /* ── NAV ── */
     .nav-tabs {
-      position: absolute; bottom: 0; left: 0; right: 0;
+      position: relative;
       height: 60px;
       background: white;
       border-top: 1px solid rgba(0, 0, 0, 0.07);
       display: flex; justify-content: space-around;
       align-items: center; padding-bottom: 8px; z-index: 5;
+      flex-shrink: 0;
     }
     .nav-tab {
       background: none; border: none; color: #999;
@@ -598,44 +598,66 @@
       flex-shrink: 0;
     }
 
-    /* File/photo viewer modal */
-    .photo-modal {
-      position: fixed; inset: 0;
-      background: rgba(0,0,0,.88);
-      display: none; align-items: center; justify-content: center;
-      z-index: 9999; padding: 12px;
+    /* ── iOS-style photo viewer ── */
+    .ios-viewer {
+      display: none; position: fixed; inset: 0;
+      background: #000; z-index: 9999;
+      flex-direction: column;
     }
-    .photo-modal.open { display: flex; }
-    .photo-modal img {
-      max-width: 96vw; max-height: 86vh;
-      border-radius: 10px; object-fit: contain; background: #111;
+    .ios-viewer.open { display: flex; }
+
+    /* Top bar */
+    .ios-viewer-topbar {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 12px 16px;
+      padding-top: calc(env(safe-area-inset-top, 0px) + 12px);
+      flex-shrink: 0;
     }
-    .photo-modal-topbar {
-      position: absolute;
-      top: calc(env(safe-area-inset-top, 0px) + 16px);
-      left: 10px; right: 10px;
-      display: flex; justify-content: space-between;
-      align-items: center; gap: 10px; z-index: 2;
+    .ios-viewer-counter {
+      color: rgba(255,255,255,0.8); font-size: 15px; font-weight: 600;
     }
-    .photo-modal-title {
-      color: #fff; font-size: 13px; opacity: .85;
-      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-    }
-    .photo-modal-close-btn {
-      height: 38px; padding: 0 14px; border-radius: 10px;
-      font-size: 14px; background: rgba(0,0,0,.55);
-      border: 1px solid rgba(255,255,255,.18); color: #fff;
-      cursor: pointer; flex-shrink: 0;
+    .ios-viewer-close {
+      background: none; border: none; color: white;
+      font-size: 15px; font-weight: 600; cursor: pointer; padding: 4px 8px;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      opacity: 0.85;
     }
-    .photo-modal-nav {
-      display: none; position: absolute; top: 50%;
-      transform: translateY(-50%);
-      width: 40px; height: 40px; border-radius: 50%;
-      background: rgba(0,0,0,0.5);
-      border: 1px solid rgba(255,255,255,0.18);
-      color: #fff; font-size: 20px; cursor: pointer; z-index: 3;
-      align-items: center; justify-content: center;
+
+    /* Main image area */
+    .ios-viewer-main {
+      flex: 1; overflow: hidden; position: relative;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .ios-viewer-img {
+      max-width: 100%; max-height: 100%;
+      object-fit: contain; display: block;
+      user-select: none; -webkit-user-drag: none;
+      transition: transform 0.25s ease;
+    }
+
+    /* Filmstrip */
+    .ios-viewer-strip {
+      flex-shrink: 0; height: 80px;
+      padding: 8px 12px;
+      padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
+      display: flex; gap: 4px;
+      overflow-x: auto; overflow-y: hidden;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+      background: rgba(0,0,0,0.6);
+    }
+    .ios-viewer-strip::-webkit-scrollbar { display: none; }
+    .ios-viewer-thumb {
+      flex-shrink: 0; width: 60px; height: 60px;
+      border-radius: 6px; overflow: hidden;
+      cursor: pointer; scroll-snap-align: center;
+      border: 2px solid transparent;
+      transition: border-color 0.15s;
+      background: #222;
+    }
+    .ios-viewer-thumb.active { border-color: white; }
+    .ios-viewer-thumb img {
+      width: 100%; height: 100%; object-fit: cover; display: block;
     }
   </style>
 </head>
@@ -904,19 +926,25 @@
   </div>
 </div>
 
-<!-- ══ MODAL: FILE/PHOTO VIEWER ══ -->
-<div id="file-modal" class="photo-modal">
-  <div class="photo-modal-topbar">
-    <div class="photo-modal-title" id="file-modal-title">Просмотр</div>
-    <div style="display:flex;align-items:center;gap:8px;">
-      <span id="file-modal-counter" style="color:rgba(255,255,255,0.5);font-size:12px;display:none;"></span>
-      <button id="file-modal-close" class="photo-modal-close-btn">Закрыть</button>
-    </div>
+<!-- ══ iOS PHOTO VIEWER ══ -->
+<div id="ios-viewer" class="ios-viewer">
+  <div class="ios-viewer-topbar">
+    <div class="ios-viewer-counter" id="ios-viewer-counter">1 / 1</div>
+    <button class="ios-viewer-close" id="ios-viewer-close">Готово</button>
   </div>
-  <button id="file-modal-prev" class="photo-modal-nav" onclick="modalNav(-1)" style="left:10px;">‹</button>
-  <button id="file-modal-next" class="photo-modal-nav" onclick="modalNav(1)" style="right:10px;">›</button>
-  <img id="file-modal-img" alt="Файл" style="display:none;">
-  <iframe id="file-modal-frame" title="Документ" style="display:none;width:96vw;height:86vh;border:0;border-radius:10px;background:#111;"></iframe>
+  <div class="ios-viewer-main" id="ios-viewer-main">
+    <img class="ios-viewer-img" id="ios-viewer-img" alt="">
+  </div>
+  <div class="ios-viewer-strip" id="ios-viewer-strip"></div>
+</div>
+
+<!-- ══ DOC VIEWER (for non-image files) ══ -->
+<div id="doc-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:9999;flex-direction:column;align-items:stretch;">
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;padding-top:calc(env(safe-area-inset-top,0px)+14px);flex-shrink:0;">
+    <div id="doc-modal-title" style="color:#fff;font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></div>
+    <button id="doc-modal-close" style="background:none;border:none;color:white;font-size:15px;font-weight:600;cursor:pointer;padding:4px 8px;font-family:inherit;opacity:0.85;">Закрыть</button>
+  </div>
+  <iframe id="doc-modal-frame" title="Документ" style="flex:1;border:0;background:#111;"></iframe>
 </div>
 
 
@@ -1018,132 +1046,110 @@
     btn.textContent = el.classList.contains('open') ? 'Свернуть ↑' : 'Подробнее →';
   }
 
-  // ── Photo/file modal ──
-  let _photoGallery = [], _photoIndex = 0;
+  // ── iOS Photo Viewer ──
+  let _gallery = [];   // [{url, thumb, title}]
+  let _galIdx = 0;
 
-  function openFileModal(opts) {
-    const modal = document.getElementById('file-modal');
-    const titleEl = document.getElementById('file-modal-title');
-    const img = document.getElementById('file-modal-img');
-    const frame = document.getElementById('file-modal-frame');
-    const type = (opts && opts.type) || 'doc';
-    const title = (opts && opts.title) || 'Просмотр';
-    const url = (opts && opts.url) || '';
-    titleEl.textContent = title;
-    img.style.display = 'none'; frame.style.display = 'none';
-    img.src = ''; frame.src = '';
-    if (type === 'image') {
-      img.src = toLargeImage(url); img.style.display = 'block';
-    } else {
-      _photoGallery = [];
-      frame.src = toPreviewUrl(url); frame.style.display = 'block';
-    }
-    updateModalNav();
-    modal.classList.add('open');
+  function openPhotoViewer(index) {
+    if (!_gallery.length) return;
+    _galIdx = Math.max(0, Math.min(index, _gallery.length - 1));
+    const viewer = document.getElementById('ios-viewer');
+    viewer.classList.add('open');
     document.body.classList.add('modal-open');
+    _buildStrip();
+    _showPhoto(_galIdx);
   }
 
-  function openPhotoModal(index) {
-    if (!_photoGallery.length) return;
-    _photoIndex = Math.max(0, Math.min(index, _photoGallery.length - 1));
-    const photo = _photoGallery[_photoIndex];
-    const modal = document.getElementById('file-modal');
-    document.getElementById('file-modal-title').textContent = photo.title;
-    document.getElementById('file-modal-frame').style.display = 'none';
-    document.getElementById('file-modal-frame').src = '';
-    const img = document.getElementById('file-modal-img');
-    img.src = toLargeImage(photo.url); img.style.display = 'block';
-    updateModalNav();
-    modal.classList.add('open');
-    document.body.classList.add('modal-open');
+  function _buildStrip() {
+    const strip = document.getElementById('ios-viewer-strip');
+    strip.innerHTML = _gallery.map((p, i) =>
+      `<div class="ios-viewer-thumb${i === _galIdx ? ' active' : ''}" data-i="${i}">` +
+      `<img src="${p.thumb || p.url}" loading="lazy"></div>`
+    ).join('');
+    strip.querySelectorAll('.ios-viewer-thumb').forEach(el => {
+      el.addEventListener('click', () => _showPhoto(parseInt(el.dataset.i)));
+    });
   }
 
-  function updateModalNav() {
-    const isGallery = _photoGallery.length > 1;
-    const prev = document.getElementById('file-modal-prev');
-    const next = document.getElementById('file-modal-next');
-    const counter = document.getElementById('file-modal-counter');
-    if (prev) prev.style.display = isGallery ? 'flex' : 'none';
-    if (next) next.style.display = isGallery ? 'flex' : 'none';
-    if (counter) {
-      counter.style.display = isGallery ? 'inline' : 'none';
-      counter.textContent = (_photoIndex + 1) + ' / ' + _photoGallery.length;
-    }
-    if (prev) prev.style.opacity = _photoIndex === 0 ? '0.3' : '1';
-    if (next) next.style.opacity = _photoIndex === _photoGallery.length - 1 ? '0.3' : '1';
+  function _showPhoto(i) {
+    _galIdx = i;
+    const p = _gallery[i];
+    const img = document.getElementById('ios-viewer-img');
+    img.src = p.url;
+    document.getElementById('ios-viewer-counter').textContent = (i + 1) + ' / ' + _gallery.length;
+    // Update strip active
+    document.querySelectorAll('.ios-viewer-thumb').forEach((el, idx) => {
+      el.classList.toggle('active', idx === i);
+    });
+    // Scroll strip to show active thumb
+    const strip = document.getElementById('ios-viewer-strip');
+    const thumb = strip.children[i];
+    if (thumb) thumb.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
   }
 
-  function modalNav(dir) {
-    if (!_photoGallery.length) return;
-    const ni = _photoIndex + dir;
-    if (ni < 0 || ni >= _photoGallery.length) return;
-    if (window.__resetModalZoom) window.__resetModalZoom();
-    openPhotoModal(ni);
-  }
-
-  function closeFileModal() {
-    const modal = document.getElementById('file-modal');
-    modal.classList.remove('open');
+  function closePhotoViewer() {
+    document.getElementById('ios-viewer').classList.remove('open');
     document.body.classList.remove('modal-open');
-    if (window.__resetModalZoom) window.__resetModalZoom();
-    document.getElementById('file-modal-img').src = '';
-    document.getElementById('file-modal-frame').src = '';
+    document.getElementById('ios-viewer-img').src = '';
   }
 
-  // Swipe
-  (function setupModalSwipe() {
-    const modal = document.getElementById('file-modal');
-    let sx = 0, sy = 0, moved = false;
-    modal.addEventListener('touchstart', e => { if (e.touches.length !== 1) return; sx = e.touches[0].clientX; sy = e.touches[0].clientY; moved = false; }, { passive: true });
-    modal.addEventListener('touchmove', e => { if (e.touches.length !== 1) return; if (Math.abs(e.touches[0].clientX - sx) > 8 || Math.abs(e.touches[0].clientY - sy) > 8) moved = true; }, { passive: true });
-    modal.addEventListener('touchend', e => {
-      if (!_photoGallery.length) return;
-      if (window.__zoomScale && window.__zoomScale > 1) return;
+  // Swipe left/right on main image area
+  (function setupViewerSwipe() {
+    const main = document.getElementById('ios-viewer-main');
+    let sx = 0, sy = 0;
+    main.addEventListener('touchstart', e => {
+      if (e.touches.length !== 1) return;
+      sx = e.touches[0].clientX; sy = e.touches[0].clientY;
+    }, { passive: true });
+    main.addEventListener('touchend', e => {
       const dx = e.changedTouches[0].clientX - sx;
       const dy = e.changedTouches[0].clientY - sy;
-      if (Math.abs(dx) < 50 || Math.abs(dy) > Math.abs(dx) * 0.6) return;
-      modalNav(dx < 0 ? 1 : -1);
+      if (Math.abs(dx) < 40 || Math.abs(dy) > Math.abs(dx) * 0.7) return;
+      const next = _galIdx + (dx < 0 ? 1 : -1);
+      if (next >= 0 && next < _gallery.length) _showPhoto(next);
     }, { passive: true });
-    modal.addEventListener('click', e => { if (moved) { moved = false; return; } if (e.target === modal) closeFileModal(); });
   })();
 
-  // Zoom
-  (function setupModalImageZoom() {
-    const modal = document.getElementById('file-modal');
-    const img = document.getElementById('file-modal-img');
-    if (!modal || !img) return;
-    let scale = 1, x = 0, y = 0, isDragging = false, startX = 0, startY = 0, moved = false;
-    function applyTransform() {
-      img.style.transform = `translate(${x}px,${y}px) scale(${scale})`;
-      img.style.transformOrigin = 'center center';
-      img.style.transition = isDragging ? 'none' : 'transform .18s ease';
-      img.style.cursor = scale > 1 ? (isDragging ? 'grabbing' : 'grab') : 'default';
-      window.__zoomScale = scale;
+  // Keyboard
+  document.addEventListener('keydown', e => {
+    if (!document.getElementById('ios-viewer').classList.contains('open')) return;
+    if (e.key === 'Escape') closePhotoViewer();
+    if (e.key === 'ArrowLeft' && _galIdx > 0) _showPhoto(_galIdx - 1);
+    if (e.key === 'ArrowRight' && _galIdx < _gallery.length - 1) _showPhoto(_galIdx + 1);
+  });
+
+  document.getElementById('ios-viewer-close').addEventListener('click', closePhotoViewer);
+  document.getElementById('doc-modal-close').addEventListener('click', closeDocModal);
+
+  // ── Doc viewer (non-image files) ──
+  function openDocModal(title, url) {
+    const m = document.getElementById('doc-modal');
+    document.getElementById('doc-modal-title').textContent = title;
+    document.getElementById('doc-modal-frame').src = url.replace('/view', '/preview');
+    m.style.display = 'flex';
+    document.body.classList.add('modal-open');
+  }
+
+  function closeDocModal() {
+    document.getElementById('doc-modal').style.display = 'none';
+    document.getElementById('doc-modal-frame').src = '';
+    document.body.classList.remove('modal-open');
+  }
+
+  // Keep old openPhotoModal as alias for gallery open
+  function openPhotoModal(index) { openPhotoViewer(index); }
+
+  // openFileModal: route to photo viewer or doc modal
+  function openFileModal(opts) {
+    if (!opts) return;
+    if (opts.type === 'image') {
+      // Single image not in gallery — wrap it
+      _gallery = [{ url: opts.url, thumb: opts.url, title: opts.title || '' }];
+      openPhotoViewer(0);
+    } else {
+      openDocModal(opts.title || 'Документ', opts.url || '');
     }
-    function resetZoom() { scale = 1; x = 0; y = 0; isDragging = false; moved = false; applyTransform(); }
-    window.__resetModalZoom = resetZoom;
-    img.addEventListener('dblclick', e => { e.preventDefault(); scale = scale === 1 ? 2 : 1; if (scale === 1) { x = 0; y = 0; } applyTransform(); });
-    img.addEventListener('wheel', e => { if (img.style.display === 'none') return; e.preventDefault(); scale = Math.max(1, Math.min(4, scale + (e.deltaY < 0 ? 0.2 : -0.2))); if (scale === 1) { x = 0; y = 0; } applyTransform(); }, { passive: false });
-    img.addEventListener('mousedown', e => { if (scale <= 1) return; isDragging = true; moved = false; startX = e.clientX - x; startY = e.clientY - y; applyTransform(); });
-    window.addEventListener('mousemove', e => { if (!isDragging) return; moved = true; x = e.clientX - startX; y = e.clientY - startY; applyTransform(); });
-    window.addEventListener('mouseup', () => { if (!isDragging) return; isDragging = false; applyTransform(); });
-    let pDist = 0, pScale = 1, tpsx = 0, tpsy = 0;
-    function getDist(t1,t2) { return Math.hypot(t2.clientX-t1.clientX, t2.clientY-t1.clientY); }
-    img.addEventListener('touchstart', e => {
-      if (e.touches.length === 2) { pDist = getDist(e.touches[0],e.touches[1]); pScale = scale; }
-      else if (e.touches.length === 1 && scale > 1) { isDragging = true; moved = false; tpsx = e.touches[0].clientX - x; tpsy = e.touches[0].clientY - y; }
-    }, { passive: true });
-    img.addEventListener('touchmove', e => {
-      if (e.touches.length === 2) { const d = getDist(e.touches[0],e.touches[1]); scale = Math.max(1, Math.min(4, pScale * d / (pDist || d))); if (scale === 1) { x = 0; y = 0; } applyTransform(); return; }
-      if (e.touches.length === 1 && isDragging && scale > 1) { moved = true; x = e.touches[0].clientX - tpsx; y = e.touches[0].clientY - tpsy; applyTransform(); e.preventDefault(); }
-    }, { passive: false });
-    img.addEventListener('touchend', () => { if (isDragging) { isDragging = false; applyTransform(); } });
-    img.addEventListener('click', e => { if (moved) { e.preventDefault(); e.stopPropagation(); moved = false; } });
-    applyTransform();
-  })();
-
-  document.addEventListener('click', e => { if (e.target.id === 'file-modal-close') closeFileModal(); });
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeFileModal(); if (e.key === 'ArrowLeft') modalNav(-1); if (e.key === 'ArrowRight') modalNav(1); });
+  }
 
   // ── Render main data ──
   function render(data, token) {
@@ -1196,7 +1202,7 @@
           document.getElementById('files-photos-loading').style.display = 'none';
           if (!photos.length) { document.getElementById('files-photos-empty').style.display = 'block'; return; }
 
-          _photoGallery = photos.map(f => ({ url: f.full_url || f.thumb_url || f.view_url || '', title: f.name || 'Фото' }));
+          _gallery = photos.map(f => ({ url: f.full_url || f.thumb_url || f.view_url || '', thumb: f.thumb_url || f.view_url || '', title: f.name || 'Фото' }));
 
           // Files screen gallery
           const fGrid = document.getElementById('files-photos-grid');
