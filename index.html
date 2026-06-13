@@ -1317,7 +1317,7 @@
 
     document.getElementById('est-grand-total').textContent = fmtRub(data.grand_total);
 
-    const paidTotal = data.phases.reduce((s, p) => s + (p.signed && p.act_final ? p.act_final : 0), 0);
+    const paidTotal = data.phases.reduce((s, p) => s + (p.signed ? ((p.act_to_pay || 0) + (p.act_advance || 0)) : 0), 0);
     const paidPct = data.grand_total > 0 ? Math.min(100, Math.round(paidTotal / data.grand_total * 100)) : 0;
     document.getElementById('est-paid-total').textContent = fmtRub(paidTotal);
     setTimeout(() => { document.getElementById('est-paid-bar').style.width = paidPct + '%'; }, 100);
@@ -1409,7 +1409,7 @@
         </div>` : '';
 
       // Act footer
-      const actBlock = (phase.act_final > 0 || phase.act_to_pay > 0) ? `
+      const actBlock = (phase.act_to_pay > 0 || phase.act_advance > 0 || phase.signed) && hasAct ? `
         <div class="phase-act-footer">
           <div class="act-row"><span style="color:#999;">По договору</span><span style="color:#bbb;text-decoration:line-through;">${fmtRub(phase.phase_total)}</span></div>
           <div class="act-row"><span style="color:#666;">Факт СМР</span><span>${fmtRub(phase.act_total - (phase.act_extra_total || 0))}</span></div>
