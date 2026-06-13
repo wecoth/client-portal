@@ -1210,7 +1210,7 @@
     if (data.folder_docs) {
       window._folderDocs = data.folder_docs;
       window._estimateId = data.estimate_id;
-      window._loadEstimate(data.folder_docs, data.advance_pct);
+      window._loadEstimate(data.estimate_id, data.advance_pct);
     } else {
       document.getElementById('est-loading').style.display = 'none';
       document.getElementById('est-error').style.display = 'block';
@@ -1451,7 +1451,7 @@
 
   async function loadEstimate(folderDocs, advancePct) {
     try {
-      const res = await fetch(`https://api.assistcloudai.xyz/portal/estimate?folder_docs=${folderDocs}&advance_pct=${advancePct}&_=${Date.now()}`);
+      const res = await fetch(`https://api.assistcloudai.xyz/portal/estimate?estimate_id=${folderDocs}&advance_pct=${advancePct}&_=${Date.now()}`);
       const data = await res.json();
       _estimateData = data;
       renderEstimate(data);
