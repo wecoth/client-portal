@@ -1210,7 +1210,7 @@
     if (data.folder_docs) {
       window._folderDocs = data.folder_docs;
       window._estimateId = data.estimate_id;
-      window._loadEstimate(data.estimate_id, data.advance_pct);
+      window._loadEstimate(data.folder_docs, data.advance_pct);
     } else {
       document.getElementById('est-loading').style.display = 'none';
       document.getElementById('est-error').style.display = 'block';
@@ -1341,10 +1341,10 @@
     // Phases
     const container = document.getElementById('est-phases');
     container.innerHTML = data.phases.map((phase, pi) => {
-      const hasAct = phase.act_total > 0;
+      const hasAct = phase.act_total > 0 || phase.sections.some(s => s.items.some(i => i.act_qty !== undefined));
       const extraItems = phase.extra_items || [];
       const extraSum = extraItems.reduce((s, i) => s + (i.price_total || 0), 0);
-      const badgeTotal = hasAct ? fmtRub(phase.act_final) : fmtRub(phase.phase_total + extraSum);
+      const badgeTotal = (phase.act_final > 0) ? fmtRub(phase.act_final) : fmtRub(phase.phase_total + extraSum);
 
       // Section rows
       const sectionRows = phase.sections.map(sec => {
@@ -1409,7 +1409,7 @@
         </div>` : '';
 
       // Act footer
-      const actBlock = hasAct ? `
+      const actBlock = (phase.act_final > 0 || phase.act_to_pay > 0) ? `
         <div class="phase-act-footer">
           <div class="act-row"><span style="color:#999;">По договору</span><span style="color:#bbb;text-decoration:line-through;">${fmtRub(phase.phase_total)}</span></div>
           <div class="act-row"><span style="color:#666;">Факт СМР</span><span>${fmtRub(phase.act_total - (phase.act_extra_total || 0))}</span></div>
@@ -1451,7 +1451,7 @@
 
   async function loadEstimate(folderDocs, advancePct) {
     try {
-      const res = await fetch(`https://api.assistcloudai.xyz/portal/estimate?estimate_id=${folderDocs}&advance_pct=${advancePct}&_=${Date.now()}`);
+      const res = await fetch(`https://api.assistcloudai.xyz/portal/estimate?folder_docs=${folderDocs}&advance_pct=${advancePct}&_=${Date.now()}`);
       const data = await res.json();
       _estimateData = data;
       renderEstimate(data);
