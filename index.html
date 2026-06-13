@@ -1532,7 +1532,15 @@
     if (_signPhaseIndex === null || !_estimateData) return;
     const phase = _estimateData.phases[_signPhaseIndex];
     document.getElementById('sign-phase-label').textContent = phase.phase + ' · ' + fmtRub(phase.act_final);
-    document.getElementById('sign-phone').value = window._clientPhone || '';
+    const rawPhone = window._clientPhone || '';
+    let fmtPhone = rawPhone;
+    const digits = rawPhone.replace(/\D/g, '');
+    if (digits.length === 11 && (digits[0] === '7' || digits[0] === '8')) {
+      fmtPhone = '+7 (' + digits.slice(1,4) + ') ' + digits.slice(4,7) + '-' + digits.slice(7,9) + '-' + digits.slice(9,11);
+    } else if (digits.length === 10) {
+      fmtPhone = '+7 (' + digits.slice(0,3) + ') ' + digits.slice(3,6) + '-' + digits.slice(6,8) + '-' + digits.slice(8,10);
+    }
+    document.getElementById('sign-phone').value = fmtPhone;
     const modal = document.getElementById('sign-modal');
     modal.style.display = 'flex';
     document.body.classList.add('modal-open');
