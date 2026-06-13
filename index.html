@@ -1317,7 +1317,7 @@
 
     document.getElementById('est-grand-total').textContent = fmtRub(data.grand_total);
 
-    const paidTotal = data.phases.reduce((s, p) => s + (p.signed ? ((p.act_to_pay || 0) + (p.act_advance || 0)) : 0), 0);
+    const paidTotal = data.phases.reduce((s, p) => s + (p.signed && p.act_final > 0 ? p.act_final : (p.signed && p.act_advance > 0 ? p.act_advance : 0)), 0);
     const paidPct = data.grand_total > 0 ? Math.min(100, Math.round(paidTotal / data.grand_total * 100)) : 0;
     document.getElementById('est-paid-total').textContent = fmtRub(paidTotal);
     setTimeout(() => { document.getElementById('est-paid-bar').style.width = paidPct + '%'; }, 100);
