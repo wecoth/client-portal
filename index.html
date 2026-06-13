@@ -984,7 +984,7 @@
   setInterval(updateClock, 30000);
 
   // ── API ──
-  const API_BASE = 'http://217.11.167.76:8001/portal';
+  const API_BASE = 'https://api.assistcloudai.xyz/portal';
 
   function getToken() {
     return new URLSearchParams(window.location.search).get('token');
@@ -1221,7 +1221,7 @@
   function loadFiles(data) {
     // Photos
     if (data.folder_photos) {
-      fetch('http://217.11.167.76:8001/portal/files?folder_id=' + encodeURIComponent(data.folder_photos))
+      fetch('https://api.assistcloudai.xyz/portal/files?folder_id=' + encodeURIComponent(data.folder_photos))
         .then(r => r.json())
         .then(d => {
           const photos = (d.files || []).filter(f => f.type === 'image');
@@ -1249,7 +1249,7 @@
 
     // Docs
     if (data.folder_docs) {
-      fetch('https://assistcloudai.xyz/webhook/portal-files?folder_id=' + encodeURIComponent(data.folder_docs))
+      fetch('https://api.assistcloudai.xyz/portal/files?folder_id=' + encodeURIComponent(data.folder_docs))
         .then(r => r.json())
         .then(d => {
           document.getElementById('files-docs-loading').style.display = 'none';
@@ -1278,7 +1278,7 @@
 
     // Receipts
     if (data.folder_receipts) {
-      fetch('https://assistcloudai.xyz/webhook/portal-files?folder_id=' + encodeURIComponent(data.folder_receipts))
+      fetch('https://api.assistcloudai.xyz/portal/files?folder_id=' + encodeURIComponent(data.folder_receipts))
         .then(r => r.json())
         .then(d => {
           document.getElementById('files-checks-loading').style.display = 'none';
@@ -1451,7 +1451,7 @@
 
   async function loadEstimate(folderDocs, advancePct) {
     try {
-      const res = await fetch(`http://217.11.167.76:8001/portal/estimate?folder_docs=${folderDocs}&advance_pct=${advancePct}&_=${Date.now()}`);
+      const res = await fetch(`https://api.assistcloudai.xyz/portal/estimate?folder_docs=${folderDocs}&advance_pct=${advancePct}&_=${Date.now()}`);
       const data = await res.json();
       _estimateData = data;
       renderEstimate(data);
@@ -1568,7 +1568,7 @@
   portal_token: window._portalToken || null
 };
     try {
-      const res = await fetch('http://217.11.167.76:8001/portal/sign-act', {
+      const res = await fetch('https://api.assistcloudai.xyz/portal/sign-act', {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
       });
       if (res.ok) {
@@ -1661,7 +1661,7 @@
     const tgId = tg?.initDataUnsafe?.user?.id;
     const token = getToken();
     let apiUrl;
-    if (tgId) apiUrl = 'http://217.11.167.76:8001/portal/by-tgid?tg_id=' + encodeURIComponent(tgId);
+    if (tgId) apiUrl = 'https://api.assistcloudai.xyz/portal/by-tgid?tg_id=' + encodeURIComponent(tgId);
     else if (token) apiUrl = API_BASE + '?token=' + encodeURIComponent(token);
     else {
       document.getElementById('loader').style.display = 'none';
