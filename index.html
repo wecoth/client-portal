@@ -1202,6 +1202,8 @@
 
     window._portalToken = token;
     window._portalName = data.name;
+    window._clientPhone = data.client_phone || '';
+    window._clientPassport = data.client_passport || '';
 
     // Load files
     loadFiles(data);
@@ -1530,7 +1532,7 @@
     if (_signPhaseIndex === null || !_estimateData) return;
     const phase = _estimateData.phases[_signPhaseIndex];
     document.getElementById('sign-phase-label').textContent = phase.phase + ' · ' + fmtRub(phase.act_final);
-    document.getElementById('sign-phone').value = '';
+    document.getElementById('sign-phone').value = window._clientPhone || '';
     const modal = document.getElementById('sign-modal');
     modal.style.display = 'flex';
     document.body.classList.add('modal-open');
