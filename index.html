@@ -984,7 +984,7 @@
   setInterval(updateClock, 30000);
 
   // ── API ──
-  const API_BASE = 'https://assistcloudai.xyz/webhook/portal';
+  const API_BASE = 'http://217.11.167.76:8001/portal';
 
   function getToken() {
     return new URLSearchParams(window.location.search).get('token');
@@ -1209,6 +1209,7 @@
     // Load estimate
     if (data.folder_docs) {
       window._folderDocs = data.folder_docs;
+      window._estimateId = data.estimate_id;
       window._loadEstimate(data.folder_docs, data.advance_pct);
     } else {
       document.getElementById('est-loading').style.display = 'none';
@@ -1220,7 +1221,7 @@
   function loadFiles(data) {
     // Photos
     if (data.folder_photos) {
-      fetch('https://assistcloudai.xyz/webhook/portal-files?folder_id=' + encodeURIComponent(data.folder_photos))
+      fetch('http://217.11.167.76:8001/portal/files?folder_id=' + encodeURIComponent(data.folder_photos))
         .then(r => r.json())
         .then(d => {
           const photos = (d.files || []).filter(f => f.type === 'image');
@@ -1450,7 +1451,7 @@
 
   async function loadEstimate(folderDocs, advancePct) {
     try {
-      const res = await fetch(`https://assistcloudai.xyz/webhook/estimate?folder_docs=${folderDocs}&advance_pct=${advancePct}&_=${Date.now()}`);
+      const res = await fetch(`http://217.11.167.76:8001/portal/estimate?folder_docs=${folderDocs}&advance_pct=${advancePct}&_=${Date.now()}`);
       const data = await res.json();
       _estimateData = data;
       renderEstimate(data);
@@ -1563,9 +1564,11 @@
       telegram_name: tgUser?.first_name || null,
       signed_at: new Date().toLocaleString('ru-RU', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' }),
       folder_docs: window._folderDocs || null
+      estimate_id: window._estimateId || null,
+      portal_token: window._portalToken || null,
     };
     try {
-      const res = await fetch('https://assistcloudai.xyz/webhook/sign-act', {
+      const res = await fetch('http://217.11.167.76:8001/portal/sign-act', {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
       });
       if (res.ok) {
@@ -1658,7 +1661,7 @@
     const tgId = tg?.initDataUnsafe?.user?.id;
     const token = getToken();
     let apiUrl;
-    if (tgId) apiUrl = 'https://assistcloudai.xyz/webhook/portal-by-tgid?tg_id=' + encodeURIComponent(tgId);
+    if (tgId) apiUrl = 'http://217.11.167.76:8001/portal/by-tgid?tg_id=' + encodeURIComponent(tgId);
     else if (token) apiUrl = API_BASE + '?token=' + encodeURIComponent(token);
     else {
       document.getElementById('loader').style.display = 'none';
