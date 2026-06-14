@@ -1559,16 +1559,14 @@
     const spinner = document.getElementById('sign-submit-spinner');
     btn.disabled = true; btnText.textContent = 'Отправляем...'; spinner.style.display = 'inline-block';
     const phase = _estimateData.phases[_signPhaseIndex];
-    const nextPhase = _estimateData.phases[_signPhaseIndex + 1];
-    const advancePct = phase.phase_total > 0 ? (phase.act_advance / phase.phase_total) : 0;
-    const advanceNext = nextPhase ? Math.round(nextPhase.phase_total * advancePct) : 0;
+    const advanceNext = phase.advance_next_sum || 0;
     const totalToPay = (phase.act_to_pay || 0) + advanceNext;
     const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
     const payload = {
   phase: phase.phase, act_final: phase.act_final,
   act_to_pay: phase.act_to_pay || 0,
   advance_next: advanceNext,
-  advance_next_phase: nextPhase ? nextPhase.phase : null,
+  advance_next_phase: phase.advance_next_phase || null,
   total_to_pay: totalToPay, phone,
   telegram_id: tgUser?.id || null,
   telegram_name: tgUser?.first_name || null,
