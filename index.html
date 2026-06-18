@@ -1617,8 +1617,8 @@
     if (lastActIdx >= 0) {
       const p = phases[lastActIdx];
       actToPay = p.act_to_pay || 0; phaseName = p.phase;
-      const advancePct = p.phase_total > 0 ? (p.act_advance / p.phase_total) : 0;
-      if (phases[lastActIdx + 1]) { advanceNext = Math.round((phases[lastActIdx + 1].phase_total || 0) * advancePct); advanceNextPhase = phases[lastActIdx + 1].phase; }
+      advanceNext = p.advance_next_sum || 0;
+      advanceNextPhase = p.advance_next_phase || null;
     }
     showPaymentScreen({ phase: phaseName || 'Текущий этап', act_to_pay: actToPay, advance_next: advanceNext, advance_next_phase: advanceNextPhase, total_to_pay: actToPay + advanceNext, signed_at: null });
   }
