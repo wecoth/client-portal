@@ -1184,9 +1184,14 @@
   function openDocModal(title, url) {
     const m = document.getElementById('doc-modal');
     document.getElementById('doc-modal-title').textContent = title;
-    // url теперь указывает на прокси /portal/file/{id}, который отдаёт сырые байты PDF —
-    // браузер показывает их через встроенный PDF-вьюер без надобности в Google Docs preview
-    document.getElementById('doc-modal-frame').src = url;
+    // url указывает на прокси /portal/file/{id}, который отдаёт сырые байты PDF —
+    // браузер показывает их через встроенный PDF-вьюер. Добавляем #view=FitH,
+    // чтобы страница сразу вписывалась по ширине экрана, без горизонтального скролла.
+    let frameUrl = url;
+    if (frameUrl && !frameUrl.includes('#')) {
+      frameUrl = frameUrl + '#view=FitH';
+    }
+    document.getElementById('doc-modal-frame').src = frameUrl;
     m.style.display = 'flex';
     document.body.classList.add('modal-open');
   }
