@@ -980,7 +980,7 @@
       <div id="doc-modal-title" style="color:#fff;font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-right:8px;"></div>
       <button id="doc-modal-close" style="background:none;border:none;color:white;font-size:15px;font-weight:600;cursor:pointer;padding:4px 8px;font-family:inherit;opacity:0.85;flex-shrink:0;">Закрыть</button>
     </div>
-    <div id="doc-modal-frame" style="flex:1;overflow:auto;background:#2c2c2e;width:100%;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y pinch-zoom;padding:10px 0;"></div>
+    <div id="doc-modal-frame" style="flex:1;overflow:auto;background:#2c2c2e;width:100%;-webkit-overflow-scrolling:touch;touch-action:none;padding:10px 0;"><div id="doc-pages-wrap" style="transform-origin:0 0;"></div></div>
   </div>
 </div>
 
@@ -996,6 +996,129 @@
   }
   updateClock();
   setInterval(updateClock, 30000);
+
+  // ── Универсальный pinch-to-zoom + pan + double-tap ──
+  // Масштаб всегда строго пропорционален тому, на сколько пользователь
+  // развёл/свёл пальцы — без округления до фиксированных x2/x3.
+  function enablePinchZoom(containerEl, contentEl, options) {
+    options = options || {};
+    const minScale = options.minScale || 1;
+    const maxScale = options.maxScale || 4;
+    const doubleTapScale = options.doubleTapScale || 2;
+    const onZoomChange = options.onZoomChange || function () {};
+
+    const state = {
+      scale: 1, x: 0, y: 0,
+      startScale: 1, startX: 0, startY: 0,
+      startDistance: 0, startMidX: 0, startMidY: 0,
+      isPinching: false, isPanning: false,
+      panStartX: 0, panStartY: 0,
+      lastTapTime: 0, lastTapX: 0, lastTapY: 0,
+    };
+
+    function apply() {
+      contentEl.style.transform = 'translate(' + state.x + 'px, ' + state.y + 'px) scale(' + state.scale + ')';
+      onZoomChange(state.scale);
+    }
+
+    function clampScale(s) { return Math.min(maxScale, Math.max(minScale, s)); }
+
+    function clampPanIfNeeded() {
+      if (state.scale <= minScale + 0.001) { state.x = 0; state.y = 0; }
+    }
+
+    function reset() {
+      state.scale = 1; state.x = 0; state.y = 0;
+      apply();
+    }
+
+    function distanceBetween(t0, t1) {
+      const dx = t0.clientX - t1.clientX;
+      const dy = t0.clientY - t1.clientY;
+      return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    function midpointOf(t0, t1, rect) {
+      return { x: (t0.clientX + t1.clientX) / 2 - rect.left, y: (t0.clientY + t1.clientY) / 2 - rect.top };
+    }
+
+    function onTouchStart(e) {
+      if (e.touches.length === 2) {
+        state.isPinching = true;
+        state.isPanning = false;
+        const rect = containerEl.getBoundingClientRect();
+        state.startDistance = distanceBetween(e.touches[0], e.touches[1]);
+        const mid = midpointOf(e.touches[0], e.touches[1], rect);
+        state.startMidX = mid.x; state.startMidY = mid.y;
+        state.startScale = state.scale;
+        state.startX = state.x; state.startY = state.y;
+      } else if (e.touches.length === 1 && state.scale > 1.001) {
+        state.isPanning = true;
+        state.isPinching = false;
+        state.panStartX = e.touches[0].clientX - state.x;
+        state.panStartY = e.touches[0].clientY - state.y;
+      }
+    }
+
+    function onTouchMove(e) {
+      if (state.isPinching && e.touches.length === 2) {
+        e.preventDefault();
+        const newDistance = distanceBetween(e.touches[0], e.touches[1]);
+        const factor = newDistance / state.startDistance;
+        state.scale = clampScale(state.startScale * factor);
+        state.x = state.startX + (state.startMidX - state.startMidX * factor);
+        state.y = state.startY + (state.startMidY - state.startMidY * factor);
+        apply();
+      } else if (state.isPanning && e.touches.length === 1) {
+        e.preventDefault();
+        state.x = e.touches[0].clientX - state.panStartX;
+        state.y = e.touches[0].clientY - state.panStartY;
+        apply();
+      }
+    }
+
+    function onTouchEnd(e) {
+      if (e.touches.length < 2) state.isPinching = false;
+      if (e.touches.length === 0) {
+        state.isPanning = false;
+        clampPanIfNeeded();
+        apply();
+        const touch = e.changedTouches && e.changedTouches[0];
+        if (touch) {
+          const now = Date.now();
+          const dt = now - state.lastTapTime;
+          const dx = Math.abs(touch.clientX - state.lastTapX);
+          const dy = Math.abs(touch.clientY - state.lastTapY);
+          if (dt > 0 && dt < 300 && dx < 30 && dy < 30) {
+            if (state.scale > 1.001) {
+              reset();
+            } else {
+              const rect = containerEl.getBoundingClientRect();
+              const tapX = touch.clientX - rect.left;
+              const tapY = touch.clientY - rect.top;
+              state.scale = doubleTapScale;
+              state.x = tapX - tapX * doubleTapScale;
+              state.y = tapY - tapY * doubleTapScale;
+              apply();
+            }
+            state.lastTapTime = 0;
+          } else {
+            state.lastTapTime = now;
+            state.lastTapX = touch.clientX;
+            state.lastTapY = touch.clientY;
+          }
+        }
+      }
+    }
+
+    containerEl.addEventListener('touchstart', onTouchStart, { passive: false });
+    containerEl.addEventListener('touchmove', onTouchMove, { passive: false });
+    containerEl.addEventListener('touchend', onTouchEnd, { passive: false });
+    containerEl.addEventListener('touchcancel', onTouchEnd, { passive: false });
+
+    return { reset: reset, getState: function () { return state; } };
+  }
+
 
   // ── API ──
   const API_BASE = 'https://api.assistcloudai.xyz/portal';
@@ -1119,6 +1242,7 @@
   }
 
   function _showPhoto(i) {
+    if (typeof _zoomImg !== 'undefined' && _zoomImg) _zoomImg.reset();
     _galIdx = i;
     const p = _gallery[i];
     const img = document.getElementById('ios-viewer-img');
@@ -1154,20 +1278,29 @@
   }
 
   function closePhotoViewer() {
+    if (typeof _zoomImg !== 'undefined' && _zoomImg) _zoomImg.reset();
     document.getElementById('ios-viewer').classList.remove('open');
     document.body.classList.remove('modal-open');
     document.getElementById('ios-viewer-img').src = '';
   }
 
   // Swipe left/right on main image area
+  let _zoomImg = null;
+  let _photoZoomActive = false;
   (function setupViewerSwipe() {
     const main = document.getElementById('ios-viewer-main');
+    const img = document.getElementById('ios-viewer-img');
+    _zoomImg = enablePinchZoom(main, img, {
+      onZoomChange: (s) => { _photoZoomActive = s > 1.05; }
+    });
     let sx = 0, sy = 0;
     main.addEventListener('touchstart', e => {
+      if (_photoZoomActive) return;
       if (e.touches.length !== 1) return;
       sx = e.touches[0].clientX; sy = e.touches[0].clientY;
     }, { passive: true });
     main.addEventListener('touchend', e => {
+      if (_photoZoomActive) return;
       const dx = e.changedTouches[0].clientX - sx;
       const dy = e.changedTouches[0].clientY - sy;
       if (Math.abs(dx) < 40 || Math.abs(dy) > Math.abs(dx) * 0.7) return;
@@ -1189,13 +1322,21 @@
 
   // ── Doc viewer (non-image files) ──
   let _pdfRenderToken = 0;
+  let _zoomDoc = null;
   async function openDocModal(title, url) {
     const m = document.getElementById('doc-modal');
     document.getElementById('doc-modal-title').textContent = title;
     const container = document.getElementById('doc-modal-frame');
-    container.innerHTML = '<div style="color:rgba(255,255,255,0.6);text-align:center;padding:40px 16px;font-size:13px;">Загрузка документа…</div>';
+    const pagesWrap = document.getElementById('doc-pages-wrap');
+    pagesWrap.style.transform = 'none';
+    pagesWrap.innerHTML = '<div style="color:rgba(255,255,255,0.6);text-align:center;padding:40px 16px;font-size:13px;">Загрузка документа…</div>';
     m.style.display = 'flex';
     document.body.classList.add('modal-open');
+    if (!_zoomDoc) {
+      _zoomDoc = enablePinchZoom(container, pagesWrap, { onZoomChange: () => {} });
+    } else {
+      _zoomDoc.reset();
+    }
 
     const myToken = ++_pdfRenderToken;
     try {
@@ -1203,35 +1344,40 @@
       // со сторонних CDN-доменов, что роняет рендер PDF без воркера это надёжнее везде.
       const pdf = await pdfjsLib.getDocument({ url: url, disableWorker: true }).promise;
       if (myToken !== _pdfRenderToken) return; // modal closed / another doc opened meanwhile
-      container.innerHTML = '';
+      pagesWrap.innerHTML = '';
       const containerWidth = container.clientWidth - 20; // minus side padding
+      const dpr = Math.max(window.devicePixelRatio || 1, 2); // минимум 2x для чёткости при зуме
       for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
         if (myToken !== _pdfRenderToken) return;
         const page = await pdf.getPage(pageNum);
         const viewport = page.getViewport({ scale: 1 });
-        const scale = containerWidth / viewport.width;
-        const scaledViewport = page.getViewport({ scale });
+        const cssScale = containerWidth / viewport.width;
+        const scaledViewport = page.getViewport({ scale: cssScale * dpr });
         const canvas = document.createElement('canvas');
         canvas.style.display = 'block';
         canvas.style.margin = '0 auto 10px';
         canvas.style.borderRadius = '4px';
+        canvas.style.width = containerWidth + 'px';
+        canvas.style.height = (scaledViewport.height / dpr) + 'px';
         canvas.width = scaledViewport.width;
         canvas.height = scaledViewport.height;
-        container.appendChild(canvas);
+        pagesWrap.appendChild(canvas);
         const ctx = canvas.getContext('2d');
         await page.render({ canvasContext: ctx, viewport: scaledViewport }).promise;
       }
     } catch (e) {
       if (myToken !== _pdfRenderToken) return;
-      container.innerHTML = '<div style="color:rgba(255,255,255,0.6);text-align:center;padding:40px 16px;font-size:13px;">Не удалось загрузить документ</div>';
+      pagesWrap.innerHTML = '<div style="color:rgba(255,255,255,0.6);text-align:center;padding:40px 16px;font-size:13px;">Не удалось загрузить документ</div>';
       console.error('PDF render error:', e);
     }
   }
 
   function closeDocModal() {
     _pdfRenderToken++; // cancel any in-flight render
+    if (_zoomDoc) _zoomDoc.reset();
     document.getElementById('doc-modal').style.display = 'none';
-    document.getElementById('doc-modal-frame').innerHTML = '';
+    const pagesWrap = document.getElementById('doc-pages-wrap');
+    if (pagesWrap) pagesWrap.innerHTML = '';
     document.body.classList.remove('modal-open');
   }
 
