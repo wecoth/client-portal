@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Мой объект</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script>
+    try { pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"; } catch(e) {}
+  </script>
   <script>
     try { window.Telegram?.WebApp?.expand(); } catch(e) {}
     try { window.Telegram?.WebApp?.requestFullscreen?.(); } catch(e) {}
@@ -976,7 +980,7 @@
       <div id="doc-modal-title" style="color:#fff;font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-right:8px;"></div>
       <button id="doc-modal-close" style="background:none;border:none;color:white;font-size:15px;font-weight:600;cursor:pointer;padding:4px 8px;font-family:inherit;opacity:0.85;flex-shrink:0;">Закрыть</button>
     </div>
-    <iframe id="doc-modal-frame" title="Документ" style="flex:1;border:0;background:#111;width:100%;"></iframe>
+    <div id="doc-modal-frame" style="flex:1;overflow:auto;background:#2c2c2e;width:100%;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y pinch-zoom;padding:10px 0;"></div>
   </div>
 </div>
 
@@ -1184,19 +1188,48 @@
   document.getElementById('doc-modal-close').addEventListener('click', closeDocModal);
 
   // ── Doc viewer (non-image files) ──
-  function openDocModal(title, url) {
+  let _pdfRenderToken = 0;
+  async function openDocModal(title, url) {
     const m = document.getElementById('doc-modal');
     document.getElementById('doc-modal-title').textContent = title;
-    // url указывает на прокси /portal/file/{id}, который отдаёт сырые байты PDF —
-    // показываем без принудительного масштаба, чтобы пользователь сам решал зум/масштаб.
-    document.getElementById('doc-modal-frame').src = url;
+    const container = document.getElementById('doc-modal-frame');
+    container.innerHTML = '<div style="color:rgba(255,255,255,0.6);text-align:center;padding:40px 16px;font-size:13px;">Загрузка документа…</div>';
     m.style.display = 'flex';
     document.body.classList.add('modal-open');
+
+    const myToken = ++_pdfRenderToken;
+    try {
+      const pdf = await pdfjsLib.getDocument(url).promise;
+      if (myToken !== _pdfRenderToken) return; // modal closed / another doc opened meanwhile
+      container.innerHTML = '';
+      const containerWidth = container.clientWidth - 20; // minus side padding
+      for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+        if (myToken !== _pdfRenderToken) return;
+        const page = await pdf.getPage(pageNum);
+        const viewport = page.getViewport({ scale: 1 });
+        const scale = containerWidth / viewport.width;
+        const scaledViewport = page.getViewport({ scale });
+        const canvas = document.createElement('canvas');
+        canvas.style.display = 'block';
+        canvas.style.margin = '0 auto 10px';
+        canvas.style.borderRadius = '4px';
+        canvas.width = scaledViewport.width;
+        canvas.height = scaledViewport.height;
+        container.appendChild(canvas);
+        const ctx = canvas.getContext('2d');
+        await page.render({ canvasContext: ctx, viewport: scaledViewport }).promise;
+      }
+    } catch (e) {
+      if (myToken !== _pdfRenderToken) return;
+      container.innerHTML = '<div style="color:rgba(255,255,255,0.6);text-align:center;padding:40px 16px;font-size:13px;">Не удалось загрузить документ</div>';
+      console.error('PDF render error:', e);
+    }
   }
 
   function closeDocModal() {
+    _pdfRenderToken++; // cancel any in-flight render
     document.getElementById('doc-modal').style.display = 'none';
-    document.getElementById('doc-modal-frame').src = '';
+    document.getElementById('doc-modal-frame').innerHTML = '';
     document.body.classList.remove('modal-open');
   }
 
