@@ -1199,7 +1199,9 @@
 
     const myToken = ++_pdfRenderToken;
     try {
-      const pdf = await pdfjsLib.getDocument(url).promise;
+      // disableWorker: true — Telegram WebView иногда блокирует загрузку Web Worker
+      // со сторонних CDN-доменов, что роняет рендер PDF без воркера это надёжнее везде.
+      const pdf = await pdfjsLib.getDocument({ url: url, disableWorker: true }).promise;
       if (myToken !== _pdfRenderToken) return; // modal closed / another doc opened meanwhile
       container.innerHTML = '';
       const containerWidth = container.clientWidth - 20; // minus side padding
