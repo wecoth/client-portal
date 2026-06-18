@@ -1612,13 +1612,23 @@
     if (!_estimateData || !_estimateData.phases) return;
     const phases = _estimateData.phases;
     let actToPay = 0, advanceNext = 0, advanceNextPhase = null, phaseName = '';
-    let lastActIdx = -1;
-    for (let i = 0; i < phases.length; i++) { if (phases[i].act_total > 0) lastActIdx = i; }
-    if (lastActIdx >= 0) {
-      const p = phases[lastActIdx];
-      actToPay = p.act_to_pay || 0; phaseName = p.phase;
-      advanceNext = p.advance_next_sum || 0;
-      advanceNextPhase = p.advance_next_phase || null;
+    // Целевой этап — тот, у кого act_total > 0 и максимальная дата signed_at (хронологически последний обработанный акт),
+    // независимо от номера этапа и порядка в массиве. Этапы без signed_at (дата не распарсилась) уходят в конец приоритета.
+    let candidates = phases.filter(p => p.act_total > 0);
+    let target = null;
+    if (candidates.length > 0) {
+      let withDate = candidates.filter(p => typeof p.signed_at === 'number');
+      if (withDate.length > 0) {
+        target = withDate.reduce((a, b) => (b.signed_at > a.signed_at ? b : a));
+      } else {
+        // fallback: нет ни одной валидной даты — старое поведение (неподписанный первый, иначе последний по индексу)
+        target = candidates.find(p => !p.signed) || candidates[candidates.length - 1];
+      }
+    }
+    if (target) {
+      actToPay = target.act_to_pay || 0; phaseName = target.phase;
+      advanceNext = target.advance_next_sum || 0;
+      advanceNextPhase = target.advance_next_phase || null;
     }
     showPaymentScreen({ phase: phaseName || 'Текущий этап', act_to_pay: actToPay, advance_next: advanceNext, advance_next_phase: advanceNextPhase, total_to_pay: actToPay + advanceNext, signed_at: null });
   }
