@@ -1094,22 +1094,49 @@
     });
   }
 
+  let _fullImgCache = {};
+  function _preloadFull(i) {
+    if (i < 0 || i >= _gallery.length) return;
+    const u = _gallery[i].url;
+    if (!u || _fullImgCache[u]) return;
+    const im = new Image();
+    im.onload = () => { _fullImgCache[u] = 'loaded'; };
+    im.src = u;
+  }
+
   function _showPhoto(i) {
     _galIdx = i;
     const p = _gallery[i];
     const img = document.getElementById('ios-viewer-img');
-    img.src = p.url;
+    img.classList.add('is-loading');
+    img.src = p.thumb || p.url;
+    if (p.url && p.url !== p.thumb) {
+      if (_fullImgCache[p.url]) {
+        img.src = p.url;
+        img.classList.remove('is-loading');
+      } else {
+        const full = new Image();
+        full.onload = () => {
+          _fullImgCache[p.url] = 'loaded';
+          if (_galIdx === i) { img.src = p.url; img.classList.remove('is-loading'); }
+        };
+        full.onerror = () => { img.classList.remove('is-loading'); };
+        full.src = p.url;
+      }
+    } else {
+      img.classList.remove('is-loading');
+    }
     document.getElementById('ios-viewer-counter').textContent = (i + 1) + ' / ' + _gallery.length;
     const titleEl = document.getElementById('ios-viewer-title');
     if (titleEl) titleEl.textContent = p.title || '';
-    // Update strip active
     document.querySelectorAll('.ios-viewer-thumb').forEach((el, idx) => {
       el.classList.toggle('active', idx === i);
     });
-    // Scroll strip to show active thumb
     const strip = document.getElementById('ios-viewer-strip');
     const thumb = strip.children[i];
     if (thumb) thumb.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    _preloadFull(i - 1);
+    _preloadFull(i + 1);
   }
 
   function closePhotoViewer() {
