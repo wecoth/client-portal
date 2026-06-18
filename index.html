@@ -642,7 +642,7 @@
     .ios-viewer-bottombar {
       flex-shrink: 0;
       display: flex; justify-content: space-between; align-items: center;
-      padding: 10px 16px 8px;
+      padding: calc(env(safe-area-inset-top, 0px) + 10px) 16px 8px;
       background: rgba(0,0,0,0.75);
       gap: 12px;
     }
@@ -955,15 +955,15 @@
 
 <!-- ══ iOS PHOTO VIEWER ══ -->
 <div id="ios-viewer" class="ios-viewer">
-  <div class="ios-viewer-main" id="ios-viewer-main">
-    <img class="ios-viewer-img" id="ios-viewer-img" alt="">
-  </div>
   <div class="ios-viewer-bottombar">
     <div class="ios-viewer-meta">
       <div class="ios-viewer-counter" id="ios-viewer-counter">1 / 1</div>
       <div class="ios-viewer-title-text" id="ios-viewer-title"></div>
     </div>
     <button class="ios-viewer-close" id="ios-viewer-close">Готово</button>
+  </div>
+  <div class="ios-viewer-main" id="ios-viewer-main">
+    <img class="ios-viewer-img" id="ios-viewer-img" alt="">
   </div>
   <div class="ios-viewer-strip" id="ios-viewer-strip"></div>
 </div>
